@@ -1,0 +1,7 @@
+2026-02-21 20:59:16,969 - run - ERROR - Database connection failed. Check DATABASE_URL.
+2026-02-21 21:22:21,576 - run - ERROR - Redis connection failed. Check REDIS_URL.
+2026-02-21 21:25:39,576 - run - ERROR - Redis connection failed. Check REDIS_URL.
+2026-02-21 21:29:02,925 - run - ERROR - Redis connection failed. Check REDIS_URL.
+2026-02-21 21:30:07,379 - run - ERROR - Redis connection failed. Check REDIS_URL.
+2026-02-21 21:31:04,132 - run - ERROR - Redis connection failed. Check REDIS_URL.
+2026-02-21 21:31:52,597 - run - ERROR - Redis connection failed. Check REDIS_URL.
