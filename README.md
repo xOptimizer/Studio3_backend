@@ -1,4 +1,4 @@
-# Flask REST API (Virtual Instructor style)
+# Flask REST API
 
 Python Flask backend with **PostgreSQL** (SQLAlchemy 2.0), **Alembic**, and **Redis**. Layout: routes → controllers → services / DAOs.
 
