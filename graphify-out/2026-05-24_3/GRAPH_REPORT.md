@@ -1,11 +1,11 @@
 # Graph Report - Server  (2026-05-24)
 
 ## Corpus Check
-- 55 files · ~9,544 words
+- 56 files · ~9,560 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 367 nodes · 505 edges · 37 communities (26 shown, 11 thin omitted)
+- 366 nodes · 504 edges · 37 communities (26 shown, 11 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 6 edges (avg confidence: 0.63)
 - Token cost: 0 input · 0 output
 
@@ -63,10 +63,10 @@
   docs/ACTIVITY_ROLES.md → src/modules/user/user_activity_dao.py
 - `Activity-Based User Roles Design` --references--> `recalculate_user_role()`  [EXTRACTED]
   docs/ACTIVITY_ROLES.md → src/modules/user/role_from_activity.py
-- `main()` --calls--> `create_app()`  [EXTRACTED]
-  run.py → src/app.py
 - `main()` --calls--> `check_db_connection()`  [EXTRACTED]
   run.py → src/shared/config/database.py
+- `main()` --calls--> `check_redis_connection()`  [EXTRACTED]
+  run.py → src/shared/config/redis_client.py
 
 ## Hyperedges (group relationships)
 - **User Roles and Activity-Based Recalculation Flow** — docs_activity_roles_design, user_user_activity_dao_increment_activity, user_role_from_activity_recalculate_user_role, models_user_activity_count_useractivitycount [INFERRED 0.85]
@@ -78,24 +78,24 @@ Cohesion: 0.07
 Nodes (48): forget_password(), google_callback(), google_redirect(), _hash_password(), _hash_refresh_secret(), _issue_session_and_tokens(), login(), logout() (+40 more)
 
 ### Community 1 - "Redis Sessions and OTP Limits"
-Cohesion: 0.15
-Nodes (19): otp_generate(), otp_resend(), get_redis_client(), Return the global Redis client (create if needed)., acquire_lock(), check_resend_limit(), generate_otp(), _key_lock() (+11 more)
+Cohesion: 0.12
+Nodes (22): otp_generate(), otp_resend(), get_redis_client(), Return the global Redis client (create if needed)., Send email via SMTP (from env)., Send email with given HTML body. Returns True on success., send_email(), acquire_lock() (+14 more)
 
 ### Community 2 - "Auth Database Access"
-Cohesion: 0.09
-Nodes (17): Auth-related DB access: users (by email, create), accounts, password_reset_token, Base, get_db(), SQLAlchemy 2.0 engine, session factory, and declarative Base., Remove query params that psycopg2 does not accept (e.g. pgbouncer=true from Supa, Declarative base for all models., Yield a DB session; caller must close/commit/rollback., _sanitize_database_url() (+9 more)
+Cohesion: 0.11
+Nodes (12): Auth-related DB access: users (by email, create), accounts, password_reset_token, Base, Declarative base for all models., DeclarativeBase, Account, Account model (OAuth/linked accounts)., SQLAlchemy models - import all so Alembic can discover them., Session model (optional DB session; app may use Redis only). (+4 more)
 
 ### Community 3 - "Service Diagnostics and SMTP"
-Cohesion: 0.11
-Nodes (18): check_db_connection(), Run SELECT 1 to verify DB is reachable., check_redis_connection(), close_redis(), Single Redis connection client., Close the Redis connection (call on shutdown)., Ping Redis to verify it's reachable., Send email via SMTP (from env). (+10 more)
+Cohesion: 0.09
+Nodes (25): check_db_connection(), Run SELECT 1 to verify DB is reachable., check_redis_connection(), close_redis(), Single Redis connection client., Close the Redis connection (call on shutdown)., Ping Redis to verify it's reachable., Global exception handler: AppError -> status_code + message; else 500 + generic (+17 more)
 
 ### Community 4 - "Authentication Routes"
 Cohesion: 0.10
 Nodes (24): _apply_cookie_ops(), forget_password(), login(), logout(), logout_all(), otp_generate(), otp_resend(), Auth Blueprint: /api/auth. (+16 more)
 
 ### Community 5 - "User Activity Role Recalculation"
-Cohesion: 0.09
-Nodes (31): Activity-Based User Roles Design, API Reference Documentation, Project Setup Instructions, Flask REST API Project, WSGI entry for gunicorn (production)., create_app(), Flask app: middleware (CORS, JSON), blueprints /api/auth and /api/user, global e, compute_role_from_counts() (+23 more)
+Cohesion: 0.10
+Nodes (28): Activity-Based User Roles Design, API Reference Documentation, Project Setup Instructions, Flask REST API Project, compute_role_from_counts(), Compute user role(s) from activity counts; recalculate and persist. Multiple rol, Return list of roles for every category where user is active (count >= threshold, Load activity counts, compute role(s), persist as comma-separated if different. (+20 more)
 
 ### Community 6 - "User Management Logic"
 Cohesion: 0.06
@@ -130,8 +130,8 @@ Cohesion: 0.29
 Nodes (6): id, name, _postman_exported_at, _postman_exported_using, _postman_variable_scope, values
 
 ### Community 34 - "Community 34"
-Cohesion: 0.25
-Nodes (7): info, description, name, _postman_id, schema, item, variable
+Cohesion: 0.29
+Nodes (6): info, description, name, _postman_id, schema, item
 
 ### Community 35 - "Community 35"
 Cohesion: 0.29
@@ -139,27 +139,27 @@ Nodes (6): id, name, _postman_exported_at, _postman_exported_using, _postman_var
 
 ### Community 36 - "Community 36"
 Cohesion: 0.33
-Nodes (7): Global exception handler: AppError -> status_code + message; else 500 + generic, register_error_handler(), error_response(), internal_error_response(), Success and error response helpers - same shape as reference., Return JSON: { success: false, message }., Generic 500 response.
+Nodes (5): get_db(), SQLAlchemy 2.0 engine, session factory, and declarative Base., Remove query params that psycopg2 does not accept (e.g. pgbouncer=true from Supa, Yield a DB session; caller must close/commit/rollback., _sanitize_database_url()
 
 ## Knowledge Gaps
-- **81 isolated node(s):** `_postman_id`, `name`, `description`, `schema`, `item` (+76 more)
+- **80 isolated node(s):** `_postman_id`, `name`, `description`, `schema`, `item` (+75 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **11 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `AppError` connect `Authentication Controllers and Logic` to `Redis Sessions and OTP Limits`, `Service Diagnostics and SMTP`, `Community 36`, `User Activity Role Recalculation`, `Authentication Routes`?**
+- **Why does `AppError` connect `Authentication Controllers and Logic` to `Redis Sessions and OTP Limits`, `Service Diagnostics and SMTP`, `Authentication Routes`, `User Activity Role Recalculation`?**
   _High betweenness centrality (0.106) - this node is a cross-community bridge._
 - **Why does `User` connect `Auth Database Access` to `Authentication Controllers and Logic`, `User Activity Role Recalculation`?**
-  _High betweenness centrality (0.072) - this node is a cross-community bridge._
-- **Why does `Base` connect `Auth Database Access` to `Alembic Database Migrations`?**
+  _High betweenness centrality (0.073) - this node is a cross-community bridge._
+- **Why does `Base` connect `Auth Database Access` to `Alembic Database Migrations`, `Community 36`?**
   _High betweenness centrality (0.055) - this node is a cross-community bridge._
 - **Are the 4 inferred relationships involving `Base` (e.g. with `User` and `UserActivityCount`) actually correct?**
   _`Base` has 4 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `Entry: load env (by FLASK_ENV), connect DB + Redis, then run Flask app. Exit on`, `WSGI entry for gunicorn (production).`, `_postman_id` to the rest of the system?**
-  _159 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _158 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Authentication Controllers and Logic` be split into smaller, more focused modules?**
   _Cohesion score 0.07256894049346879 - nodes in this community are weakly interconnected._
 - **Should `Redis Sessions and OTP Limits` be split into smaller, more focused modules?**
-  _Cohesion score 0.14761904761904762 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.11666666666666667 - nodes in this community are weakly interconnected._

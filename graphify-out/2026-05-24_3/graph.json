@@ -53,7 +53,7 @@
       "source_file": "wsgi.py",
       "source_location": "L1",
       "id": "wsgi_py",
-      "community": 5,
+      "community": 3,
       "norm_label": "wsgi.py"
     },
     {
@@ -62,7 +62,7 @@
       "source_file": "wsgi.py",
       "source_location": "L1",
       "id": "server_wsgi_rationale_1",
-      "community": 5,
+      "community": 3,
       "norm_label": "wsgi entry for gunicorn (production)."
     },
     {
@@ -129,13 +129,67 @@
       "norm_label": "item"
     },
     {
-      "label": "variable",
+      "label": "Virtual_Instructor_Dev.postman_environment.json",
       "file_type": "code",
-      "source_file": "postman/Virtual_Instructor_API.postman_collection.json",
-      "source_location": "L472",
-      "id": "postman_virtual_instructor_api_postman_collection_variable",
-      "community": 34,
-      "norm_label": "variable"
+      "source_file": "postman/Virtual_Instructor_Dev.postman_environment.json",
+      "source_location": "L1",
+      "id": "postman_virtual_instructor_dev_postman_environment_json",
+      "community": 35,
+      "norm_label": "virtual_instructor_dev.postman_environment.json"
+    },
+    {
+      "label": "id",
+      "file_type": "code",
+      "source_file": "postman/Virtual_Instructor_Dev.postman_environment.json",
+      "source_location": "L2",
+      "id": "postman_virtual_instructor_dev_postman_environment_id",
+      "community": 35,
+      "norm_label": "id"
+    },
+    {
+      "label": "name",
+      "file_type": "code",
+      "source_file": "postman/Virtual_Instructor_Dev.postman_environment.json",
+      "source_location": "L3",
+      "id": "postman_virtual_instructor_dev_postman_environment_name",
+      "community": 35,
+      "norm_label": "name"
+    },
+    {
+      "label": "values",
+      "file_type": "code",
+      "source_file": "postman/Virtual_Instructor_Dev.postman_environment.json",
+      "source_location": "L4",
+      "id": "postman_virtual_instructor_dev_postman_environment_values",
+      "community": 35,
+      "norm_label": "values"
+    },
+    {
+      "label": "_postman_variable_scope",
+      "file_type": "code",
+      "source_file": "postman/Virtual_Instructor_Dev.postman_environment.json",
+      "source_location": "L18",
+      "id": "postman_virtual_instructor_dev_postman_environment_postman_variable_scope",
+      "community": 35,
+      "norm_label": "_postman_variable_scope"
+    },
+    {
+      "label": "_postman_exported_at",
+      "file_type": "code",
+      "source_file": "postman/Virtual_Instructor_Dev.postman_environment.json",
+      "source_location": "L19",
+      "id": "postman_virtual_instructor_dev_postman_environment_postman_exported_at",
+      "community": 35,
+      "norm_label": "_postman_exported_at"
+    },
+    {
+      "label": "_postman_exported_using",
+      "file_type": "code",
+      "source_file": "postman/Virtual_Instructor_Dev.postman_environment.json",
+      "source_location": "L20",
+      "id": "postman_virtual_instructor_dev_postman_environment_postman_exported_using",
+      "community": 35,
+      "norm_label": "_postman_exported_using"
     },
     {
       "label": "env.py",
@@ -287,7 +341,7 @@
       "source_file": "src/app.py",
       "source_location": "L1",
       "id": "src_app_py",
-      "community": 5,
+      "community": 3,
       "norm_label": "app.py"
     },
     {
@@ -296,7 +350,7 @@
       "source_file": "src/app.py",
       "source_location": "L8",
       "id": "src_app_create_app",
-      "community": 5,
+      "community": 3,
       "norm_label": "create_app()"
     },
     {
@@ -305,7 +359,7 @@
       "source_file": "src/app.py",
       "source_location": "L1",
       "id": "src_app_rationale_1",
-      "community": 5,
+      "community": 3,
       "norm_label": "flask app: middleware (cors, json), blueprints /api/auth and /api/user, global e"
     },
     {
@@ -323,7 +377,7 @@
       "source_file": "src/middlewares/error_handler.py",
       "source_location": "L1",
       "id": "src_middlewares_error_handler_py",
-      "community": 36,
+      "community": 3,
       "norm_label": "error_handler.py"
     },
     {
@@ -332,7 +386,7 @@
       "source_file": "src/middlewares/error_handler.py",
       "source_location": "L12",
       "id": "middlewares_error_handler_register_error_handler",
-      "community": 36,
+      "community": 3,
       "norm_label": "register_error_handler()"
     },
     {
@@ -341,7 +395,7 @@
       "source_file": "src/middlewares/error_handler.py",
       "source_location": "L1",
       "id": "middlewares_error_handler_rationale_1",
-      "community": 36,
+      "community": 3,
       "norm_label": "global exception handler: apperror -> status_code + message; else 500 + generic"
     },
     {
@@ -431,7 +485,7 @@
       "source_file": "src/shared/config/database.py",
       "source_location": "L1",
       "id": "src_shared_config_database_py",
-      "community": 2,
+      "community": 36,
       "norm_label": "database.py"
     },
     {
@@ -440,7 +494,7 @@
       "source_file": "src/shared/config/database.py",
       "source_location": "L10",
       "id": "config_database_sanitize_database_url",
-      "community": 2,
+      "community": 36,
       "norm_label": "_sanitize_database_url()"
     },
     {
@@ -467,7 +521,7 @@
       "source_file": "src/shared/config/database.py",
       "source_location": "L46",
       "id": "config_database_get_db",
-      "community": 2,
+      "community": 36,
       "norm_label": "get_db()"
     },
     {
@@ -485,7 +539,7 @@
       "source_file": "src/shared/config/database.py",
       "source_location": "L1",
       "id": "config_database_rationale_1",
-      "community": 2,
+      "community": 36,
       "norm_label": "sqlalchemy 2.0 engine, session factory, and declarative base."
     },
     {
@@ -494,7 +548,7 @@
       "source_file": "src/shared/config/database.py",
       "source_location": "L11",
       "id": "config_database_rationale_11",
-      "community": 2,
+      "community": 36,
       "norm_label": "remove query params that psycopg2 does not accept (e.g. pgbouncer=true from supa"
     },
     {
@@ -512,7 +566,7 @@
       "source_file": "src/shared/config/database.py",
       "source_location": "L47",
       "id": "config_database_rationale_47",
-      "community": 2,
+      "community": 36,
       "norm_label": "yield a db session; caller must close/commit/rollback."
     },
     {
@@ -638,7 +692,7 @@
       "source_file": "src/shared/notification/email_service.py",
       "source_location": "L1",
       "id": "src_shared_notification_email_service_py",
-      "community": 3,
+      "community": 1,
       "norm_label": "email_service.py"
     },
     {
@@ -647,7 +701,7 @@
       "source_file": "src/shared/notification/email_service.py",
       "source_location": "L17",
       "id": "notification_email_service_send_email",
-      "community": 3,
+      "community": 1,
       "norm_label": "send_email()"
     },
     {
@@ -656,7 +710,7 @@
       "source_file": "src/shared/notification/email_service.py",
       "source_location": "L1",
       "id": "notification_email_service_rationale_1",
-      "community": 3,
+      "community": 1,
       "norm_label": "send email via smtp (from env)."
     },
     {
@@ -665,7 +719,7 @@
       "source_file": "src/shared/notification/email_service.py",
       "source_location": "L18",
       "id": "notification_email_service_rationale_18",
-      "community": 3,
+      "community": 1,
       "norm_label": "send email with given html body. returns true on success."
     },
     {
@@ -773,7 +827,7 @@
       "source_file": "src/shared/utils/api_response.py",
       "source_location": "L1",
       "id": "src_shared_utils_api_response_py",
-      "community": 36,
+      "community": 3,
       "norm_label": "api_response.py"
     },
     {
@@ -791,7 +845,7 @@
       "source_file": "src/shared/utils/api_response.py",
       "source_location": "L21",
       "id": "utils_api_response_error_response",
-      "community": 36,
+      "community": 3,
       "norm_label": "error_response()"
     },
     {
@@ -800,7 +854,7 @@
       "source_file": "src/shared/utils/api_response.py",
       "source_location": "L29",
       "id": "utils_api_response_internal_error_response",
-      "community": 36,
+      "community": 3,
       "norm_label": "internal_error_response()"
     },
     {
@@ -809,7 +863,7 @@
       "source_file": "src/shared/utils/api_response.py",
       "source_location": "L1",
       "id": "utils_api_response_rationale_1",
-      "community": 36,
+      "community": 3,
       "norm_label": "success and error response helpers - same shape as reference."
     },
     {
@@ -827,7 +881,7 @@
       "source_file": "src/shared/utils/api_response.py",
       "source_location": "L25",
       "id": "utils_api_response_rationale_25",
-      "community": 36,
+      "community": 3,
       "norm_label": "return json: { success: false, message }."
     },
     {
@@ -836,7 +890,7 @@
       "source_file": "src/shared/utils/api_response.py",
       "source_location": "L30",
       "id": "utils_api_response_rationale_30",
-      "community": 36,
+      "community": 3,
       "norm_label": "generic 500 response."
     },
     {
@@ -3081,69 +3135,6 @@
       "norm_label": "troubleshooting"
     },
     {
-      "label": "Virtual_Instructor_Dev.postman_environment.json",
-      "file_type": "code",
-      "source_file": "postman/Virtual_Instructor_Dev.postman_environment.json",
-      "source_location": "L1",
-      "community": 35,
-      "norm_label": "virtual_instructor_dev.postman_environment.json",
-      "id": "postman_virtual_instructor_dev_postman_environment_json"
-    },
-    {
-      "label": "id",
-      "file_type": "code",
-      "source_file": "postman/Virtual_Instructor_Dev.postman_environment.json",
-      "source_location": "L2",
-      "community": 35,
-      "norm_label": "id",
-      "id": "postman_virtual_instructor_dev_postman_environment_id"
-    },
-    {
-      "label": "name",
-      "file_type": "code",
-      "source_file": "postman/Virtual_Instructor_Dev.postman_environment.json",
-      "source_location": "L3",
-      "community": 35,
-      "norm_label": "name",
-      "id": "postman_virtual_instructor_dev_postman_environment_name"
-    },
-    {
-      "label": "values",
-      "file_type": "code",
-      "source_file": "postman/Virtual_Instructor_Dev.postman_environment.json",
-      "source_location": "L4",
-      "community": 35,
-      "norm_label": "values",
-      "id": "postman_virtual_instructor_dev_postman_environment_values"
-    },
-    {
-      "label": "_postman_variable_scope",
-      "file_type": "code",
-      "source_file": "postman/Virtual_Instructor_Dev.postman_environment.json",
-      "source_location": "L18",
-      "community": 35,
-      "norm_label": "_postman_variable_scope",
-      "id": "postman_virtual_instructor_dev_postman_environment_postman_variable_scope"
-    },
-    {
-      "label": "_postman_exported_at",
-      "file_type": "code",
-      "source_file": "postman/Virtual_Instructor_Dev.postman_environment.json",
-      "source_location": "L19",
-      "community": 35,
-      "norm_label": "_postman_exported_at",
-      "id": "postman_virtual_instructor_dev_postman_environment_postman_exported_at"
-    },
-    {
-      "label": "_postman_exported_using",
-      "file_type": "code",
-      "source_file": "postman/Virtual_Instructor_Dev.postman_environment.json",
-      "source_location": "L20",
-      "community": 35,
-      "norm_label": "_postman_exported_using",
-      "id": "postman_virtual_instructor_dev_postman_environment_postman_exported_using"
-    },
-    {
       "label": "Virtual_Instructor_API.postman_collection.json",
       "file_type": "code",
       "source_file": "Virtual_Instructor_API.postman_collection.json",
@@ -3495,9 +3486,9 @@
       "source_file": "postman/Virtual_Instructor_API.postman_collection.json",
       "source_location": "L2",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "postman_virtual_instructor_api_postman_collection_json",
-      "target": "postman_virtual_instructor_api_postman_collection_info"
+      "target": "postman_virtual_instructor_api_postman_collection_info",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -3505,18 +3496,8 @@
       "source_file": "postman/Virtual_Instructor_API.postman_collection.json",
       "source_location": "L8",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "postman_virtual_instructor_api_postman_collection_json",
-      "target": "postman_virtual_instructor_api_postman_collection_item"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "postman/Virtual_Instructor_API.postman_collection.json",
-      "source_location": "L472",
-      "weight": 1.0,
-      "source": "postman_virtual_instructor_api_postman_collection_json",
-      "target": "postman_virtual_instructor_api_postman_collection_variable",
+      "target": "postman_virtual_instructor_api_postman_collection_item",
       "confidence_score": 1.0
     },
     {
@@ -3525,9 +3506,9 @@
       "source_file": "postman/Virtual_Instructor_API.postman_collection.json",
       "source_location": "L3",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "postman_virtual_instructor_api_postman_collection_info",
-      "target": "postman_virtual_instructor_api_postman_collection_info_postman_id"
+      "target": "postman_virtual_instructor_api_postman_collection_info_postman_id",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -3535,9 +3516,9 @@
       "source_file": "postman/Virtual_Instructor_API.postman_collection.json",
       "source_location": "L4",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "postman_virtual_instructor_api_postman_collection_info",
-      "target": "postman_virtual_instructor_api_postman_collection_info_name"
+      "target": "postman_virtual_instructor_api_postman_collection_info_name",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -3545,9 +3526,9 @@
       "source_file": "postman/Virtual_Instructor_API.postman_collection.json",
       "source_location": "L5",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "postman_virtual_instructor_api_postman_collection_info",
-      "target": "postman_virtual_instructor_api_postman_collection_info_description"
+      "target": "postman_virtual_instructor_api_postman_collection_info_description",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -3555,9 +3536,69 @@
       "source_file": "postman/Virtual_Instructor_API.postman_collection.json",
       "source_location": "L6",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "postman_virtual_instructor_api_postman_collection_info",
-      "target": "postman_virtual_instructor_api_postman_collection_info_schema"
+      "target": "postman_virtual_instructor_api_postman_collection_info_schema",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "postman/Virtual_Instructor_Dev.postman_environment.json",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "postman_virtual_instructor_dev_postman_environment_json",
+      "target": "postman_virtual_instructor_dev_postman_environment_id",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "postman/Virtual_Instructor_Dev.postman_environment.json",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "postman_virtual_instructor_dev_postman_environment_json",
+      "target": "postman_virtual_instructor_dev_postman_environment_name",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "postman/Virtual_Instructor_Dev.postman_environment.json",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "postman_virtual_instructor_dev_postman_environment_json",
+      "target": "postman_virtual_instructor_dev_postman_environment_values",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "postman/Virtual_Instructor_Dev.postman_environment.json",
+      "source_location": "L18",
+      "weight": 1.0,
+      "source": "postman_virtual_instructor_dev_postman_environment_json",
+      "target": "postman_virtual_instructor_dev_postman_environment_postman_variable_scope",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "postman/Virtual_Instructor_Dev.postman_environment.json",
+      "source_location": "L19",
+      "weight": 1.0,
+      "source": "postman_virtual_instructor_dev_postman_environment_json",
+      "target": "postman_virtual_instructor_dev_postman_environment_postman_exported_at",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "postman/Virtual_Instructor_Dev.postman_environment.json",
+      "source_location": "L20",
+      "weight": 1.0,
+      "source": "postman_virtual_instructor_dev_postman_environment_json",
+      "target": "postman_virtual_instructor_dev_postman_environment_postman_exported_using",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -8358,66 +8399,6 @@
       "confidence_score": 1.0,
       "source": "docs_readme_7_run_the_application",
       "target": "docs_readme_codeblock_9"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "postman/Virtual_Instructor_Dev.postman_environment.json",
-      "source_location": "L2",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "postman_virtual_instructor_dev_postman_environment_json",
-      "target": "postman_virtual_instructor_dev_postman_environment_id"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "postman/Virtual_Instructor_Dev.postman_environment.json",
-      "source_location": "L3",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "postman_virtual_instructor_dev_postman_environment_json",
-      "target": "postman_virtual_instructor_dev_postman_environment_name"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "postman/Virtual_Instructor_Dev.postman_environment.json",
-      "source_location": "L4",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "postman_virtual_instructor_dev_postman_environment_json",
-      "target": "postman_virtual_instructor_dev_postman_environment_values"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "postman/Virtual_Instructor_Dev.postman_environment.json",
-      "source_location": "L18",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "postman_virtual_instructor_dev_postman_environment_json",
-      "target": "postman_virtual_instructor_dev_postman_environment_postman_variable_scope"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "postman/Virtual_Instructor_Dev.postman_environment.json",
-      "source_location": "L19",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "postman_virtual_instructor_dev_postman_environment_json",
-      "target": "postman_virtual_instructor_dev_postman_environment_postman_exported_at"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "postman/Virtual_Instructor_Dev.postman_environment.json",
-      "source_location": "L20",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "postman_virtual_instructor_dev_postman_environment_json",
-      "target": "postman_virtual_instructor_dev_postman_environment_postman_exported_using"
     },
     {
       "relation": "contains",

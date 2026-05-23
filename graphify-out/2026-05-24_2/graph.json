@@ -48,12 +48,138 @@
       "norm_label": "entry: load env (by flask_env), connect db + redis, then run flask app. exit on"
     },
     {
+      "label": "Virtual_Instructor_API.postman_collection.json",
+      "file_type": "code",
+      "source_file": "Virtual_Instructor_API.postman_collection.json",
+      "source_location": "L1",
+      "id": "virtual_instructor_api_postman_collection_json",
+      "community": 30,
+      "norm_label": "virtual_instructor_api.postman_collection.json"
+    },
+    {
+      "label": "info",
+      "file_type": "code",
+      "source_file": "Virtual_Instructor_API.postman_collection.json",
+      "source_location": "L2",
+      "id": "server_virtual_instructor_api_postman_collection_info",
+      "community": 30,
+      "norm_label": "info"
+    },
+    {
+      "label": "_postman_id",
+      "file_type": "code",
+      "source_file": "Virtual_Instructor_API.postman_collection.json",
+      "source_location": "L3",
+      "id": "server_virtual_instructor_api_postman_collection_info_postman_id",
+      "community": 30,
+      "norm_label": "_postman_id"
+    },
+    {
+      "label": "name",
+      "file_type": "code",
+      "source_file": "Virtual_Instructor_API.postman_collection.json",
+      "source_location": "L4",
+      "id": "server_virtual_instructor_api_postman_collection_info_name",
+      "community": 30,
+      "norm_label": "name"
+    },
+    {
+      "label": "description",
+      "file_type": "code",
+      "source_file": "Virtual_Instructor_API.postman_collection.json",
+      "source_location": "L5",
+      "id": "server_virtual_instructor_api_postman_collection_info_description",
+      "community": 30,
+      "norm_label": "description"
+    },
+    {
+      "label": "schema",
+      "file_type": "code",
+      "source_file": "Virtual_Instructor_API.postman_collection.json",
+      "source_location": "L6",
+      "id": "server_virtual_instructor_api_postman_collection_info_schema",
+      "community": 30,
+      "norm_label": "schema"
+    },
+    {
+      "label": "item",
+      "file_type": "code",
+      "source_file": "Virtual_Instructor_API.postman_collection.json",
+      "source_location": "L8",
+      "id": "server_virtual_instructor_api_postman_collection_item",
+      "community": 30,
+      "norm_label": "item"
+    },
+    {
+      "label": "Virtual_Instructor_Dev.postman_environment.json",
+      "file_type": "code",
+      "source_file": "Virtual_Instructor_Dev.postman_environment.json",
+      "source_location": "L1",
+      "id": "virtual_instructor_dev_postman_environment_json",
+      "community": 31,
+      "norm_label": "virtual_instructor_dev.postman_environment.json"
+    },
+    {
+      "label": "id",
+      "file_type": "code",
+      "source_file": "Virtual_Instructor_Dev.postman_environment.json",
+      "source_location": "L2",
+      "id": "server_virtual_instructor_dev_postman_environment_id",
+      "community": 31,
+      "norm_label": "id"
+    },
+    {
+      "label": "name",
+      "file_type": "code",
+      "source_file": "Virtual_Instructor_Dev.postman_environment.json",
+      "source_location": "L3",
+      "id": "server_virtual_instructor_dev_postman_environment_name",
+      "community": 31,
+      "norm_label": "name"
+    },
+    {
+      "label": "values",
+      "file_type": "code",
+      "source_file": "Virtual_Instructor_Dev.postman_environment.json",
+      "source_location": "L4",
+      "id": "server_virtual_instructor_dev_postman_environment_values",
+      "community": 31,
+      "norm_label": "values"
+    },
+    {
+      "label": "_postman_variable_scope",
+      "file_type": "code",
+      "source_file": "Virtual_Instructor_Dev.postman_environment.json",
+      "source_location": "L18",
+      "id": "server_virtual_instructor_dev_postman_environment_postman_variable_scope",
+      "community": 31,
+      "norm_label": "_postman_variable_scope"
+    },
+    {
+      "label": "_postman_exported_at",
+      "file_type": "code",
+      "source_file": "Virtual_Instructor_Dev.postman_environment.json",
+      "source_location": "L19",
+      "id": "server_virtual_instructor_dev_postman_environment_postman_exported_at",
+      "community": 31,
+      "norm_label": "_postman_exported_at"
+    },
+    {
+      "label": "_postman_exported_using",
+      "file_type": "code",
+      "source_file": "Virtual_Instructor_Dev.postman_environment.json",
+      "source_location": "L20",
+      "id": "server_virtual_instructor_dev_postman_environment_postman_exported_using",
+      "community": 31,
+      "norm_label": "_postman_exported_using"
+    },
+    {
       "label": "wsgi.py",
       "file_type": "code",
       "source_file": "wsgi.py",
       "source_location": "L1",
       "id": "wsgi_py",
-      "community": 5,
+      "community": 3,
       "norm_label": "wsgi.py"
     },
     {
@@ -62,80 +188,8 @@
       "source_file": "wsgi.py",
       "source_location": "L1",
       "id": "server_wsgi_rationale_1",
-      "community": 5,
+      "community": 3,
       "norm_label": "wsgi entry for gunicorn (production)."
-    },
-    {
-      "label": "Virtual_Instructor_API.postman_collection.json",
-      "file_type": "code",
-      "source_file": "postman/Virtual_Instructor_API.postman_collection.json",
-      "source_location": "L1",
-      "id": "postman_virtual_instructor_api_postman_collection_json",
-      "community": 34,
-      "norm_label": "virtual_instructor_api.postman_collection.json"
-    },
-    {
-      "label": "info",
-      "file_type": "code",
-      "source_file": "postman/Virtual_Instructor_API.postman_collection.json",
-      "source_location": "L2",
-      "id": "postman_virtual_instructor_api_postman_collection_info",
-      "community": 34,
-      "norm_label": "info"
-    },
-    {
-      "label": "_postman_id",
-      "file_type": "code",
-      "source_file": "postman/Virtual_Instructor_API.postman_collection.json",
-      "source_location": "L3",
-      "id": "postman_virtual_instructor_api_postman_collection_info_postman_id",
-      "community": 34,
-      "norm_label": "_postman_id"
-    },
-    {
-      "label": "name",
-      "file_type": "code",
-      "source_file": "postman/Virtual_Instructor_API.postman_collection.json",
-      "source_location": "L4",
-      "id": "postman_virtual_instructor_api_postman_collection_info_name",
-      "community": 34,
-      "norm_label": "name"
-    },
-    {
-      "label": "description",
-      "file_type": "code",
-      "source_file": "postman/Virtual_Instructor_API.postman_collection.json",
-      "source_location": "L5",
-      "id": "postman_virtual_instructor_api_postman_collection_info_description",
-      "community": 34,
-      "norm_label": "description"
-    },
-    {
-      "label": "schema",
-      "file_type": "code",
-      "source_file": "postman/Virtual_Instructor_API.postman_collection.json",
-      "source_location": "L6",
-      "id": "postman_virtual_instructor_api_postman_collection_info_schema",
-      "community": 34,
-      "norm_label": "schema"
-    },
-    {
-      "label": "item",
-      "file_type": "code",
-      "source_file": "postman/Virtual_Instructor_API.postman_collection.json",
-      "source_location": "L8",
-      "id": "postman_virtual_instructor_api_postman_collection_item",
-      "community": 34,
-      "norm_label": "item"
-    },
-    {
-      "label": "variable",
-      "file_type": "code",
-      "source_file": "postman/Virtual_Instructor_API.postman_collection.json",
-      "source_location": "L472",
-      "id": "postman_virtual_instructor_api_postman_collection_variable",
-      "community": 34,
-      "norm_label": "variable"
     },
     {
       "label": "env.py",
@@ -287,7 +341,7 @@
       "source_file": "src/app.py",
       "source_location": "L1",
       "id": "src_app_py",
-      "community": 5,
+      "community": 3,
       "norm_label": "app.py"
     },
     {
@@ -296,7 +350,7 @@
       "source_file": "src/app.py",
       "source_location": "L8",
       "id": "src_app_create_app",
-      "community": 5,
+      "community": 3,
       "norm_label": "create_app()"
     },
     {
@@ -305,7 +359,7 @@
       "source_file": "src/app.py",
       "source_location": "L1",
       "id": "src_app_rationale_1",
-      "community": 5,
+      "community": 3,
       "norm_label": "flask app: middleware (cors, json), blueprints /api/auth and /api/user, global e"
     },
     {
@@ -323,7 +377,7 @@
       "source_file": "src/middlewares/error_handler.py",
       "source_location": "L1",
       "id": "src_middlewares_error_handler_py",
-      "community": 36,
+      "community": 3,
       "norm_label": "error_handler.py"
     },
     {
@@ -332,7 +386,7 @@
       "source_file": "src/middlewares/error_handler.py",
       "source_location": "L12",
       "id": "middlewares_error_handler_register_error_handler",
-      "community": 36,
+      "community": 3,
       "norm_label": "register_error_handler()"
     },
     {
@@ -341,7 +395,7 @@
       "source_file": "src/middlewares/error_handler.py",
       "source_location": "L1",
       "id": "middlewares_error_handler_rationale_1",
-      "community": 36,
+      "community": 3,
       "norm_label": "global exception handler: apperror -> status_code + message; else 500 + generic"
     },
     {
@@ -350,7 +404,7 @@
       "source_file": "src/middlewares/auth_middleware.py",
       "source_location": "L1",
       "id": "src_middlewares_auth_middleware_py",
-      "community": 4,
+      "community": 1,
       "norm_label": "auth_middleware.py"
     },
     {
@@ -359,7 +413,7 @@
       "source_file": "src/middlewares/auth_middleware.py",
       "source_location": "L10",
       "id": "middlewares_auth_middleware_get_bearer_token",
-      "community": 4,
+      "community": 1,
       "norm_label": "get_bearer_token()"
     },
     {
@@ -368,7 +422,7 @@
       "source_file": "src/middlewares/auth_middleware.py",
       "source_location": "L17",
       "id": "middlewares_auth_middleware_auth_required",
-      "community": 4,
+      "community": 1,
       "norm_label": "auth_required()"
     },
     {
@@ -377,7 +431,7 @@
       "source_file": "src/middlewares/auth_middleware.py",
       "source_location": "L1",
       "id": "middlewares_auth_middleware_rationale_1",
-      "community": 4,
+      "community": 1,
       "norm_label": "bearer jwt + redis session check; set g.user = { id, session_id }."
     },
     {
@@ -386,7 +440,7 @@
       "source_file": "src/middlewares/auth_middleware.py",
       "source_location": "L18",
       "id": "middlewares_auth_middleware_rationale_18",
-      "community": 4,
+      "community": 1,
       "norm_label": "decorator: verify jwt, check redis session exists, set g.user."
     },
     {
@@ -647,7 +701,7 @@
       "source_file": "src/shared/notification/email_service.py",
       "source_location": "L17",
       "id": "notification_email_service_send_email",
-      "community": 3,
+      "community": 0,
       "norm_label": "send_email()"
     },
     {
@@ -665,7 +719,7 @@
       "source_file": "src/shared/notification/email_service.py",
       "source_location": "L18",
       "id": "notification_email_service_rationale_18",
-      "community": 3,
+      "community": 0,
       "norm_label": "send email with given html body. returns true on success."
     },
     {
@@ -773,7 +827,7 @@
       "source_file": "src/shared/utils/api_response.py",
       "source_location": "L1",
       "id": "src_shared_utils_api_response_py",
-      "community": 36,
+      "community": 3,
       "norm_label": "api_response.py"
     },
     {
@@ -791,7 +845,7 @@
       "source_file": "src/shared/utils/api_response.py",
       "source_location": "L21",
       "id": "utils_api_response_error_response",
-      "community": 36,
+      "community": 3,
       "norm_label": "error_response()"
     },
     {
@@ -800,7 +854,7 @@
       "source_file": "src/shared/utils/api_response.py",
       "source_location": "L29",
       "id": "utils_api_response_internal_error_response",
-      "community": 36,
+      "community": 3,
       "norm_label": "internal_error_response()"
     },
     {
@@ -809,7 +863,7 @@
       "source_file": "src/shared/utils/api_response.py",
       "source_location": "L1",
       "id": "utils_api_response_rationale_1",
-      "community": 36,
+      "community": 3,
       "norm_label": "success and error response helpers - same shape as reference."
     },
     {
@@ -827,7 +881,7 @@
       "source_file": "src/shared/utils/api_response.py",
       "source_location": "L25",
       "id": "utils_api_response_rationale_25",
-      "community": 36,
+      "community": 3,
       "norm_label": "return json: { success: false, message }."
     },
     {
@@ -836,7 +890,7 @@
       "source_file": "src/shared/utils/api_response.py",
       "source_location": "L30",
       "id": "utils_api_response_rationale_30",
-      "community": 36,
+      "community": 3,
       "norm_label": "generic 500 response."
     },
     {
@@ -899,7 +953,7 @@
       "source_file": "src/shared/utils/jwt_utils.py",
       "source_location": "L1",
       "id": "src_shared_utils_jwt_utils_py",
-      "community": 4,
+      "community": 1,
       "norm_label": "jwt_utils.py"
     },
     {
@@ -917,7 +971,7 @@
       "source_file": "src/shared/utils/jwt_utils.py",
       "source_location": "L25",
       "id": "utils_jwt_utils_verify_access_token",
-      "community": 4,
+      "community": 1,
       "norm_label": "verify_access_token()"
     },
     {
@@ -926,7 +980,7 @@
       "source_file": "src/shared/utils/jwt_utils.py",
       "source_location": "L1",
       "id": "utils_jwt_utils_rationale_1",
-      "community": 4,
+      "community": 1,
       "norm_label": "jwt sign and verify using secret from env."
     },
     {
@@ -944,7 +998,7 @@
       "source_file": "src/shared/utils/jwt_utils.py",
       "source_location": "L26",
       "id": "utils_jwt_utils_rationale_26",
-      "community": 4,
+      "community": 1,
       "norm_label": "verify jwt and return payload or none if invalid/expired."
     },
     {
@@ -1124,7 +1178,7 @@
       "source_file": "src/shared/templates/otp_template.py",
       "source_location": "L1",
       "id": "src_shared_templates_otp_template_py",
-      "community": 1,
+      "community": 0,
       "norm_label": "otp_template.py"
     },
     {
@@ -1133,7 +1187,7 @@
       "source_file": "src/shared/templates/otp_template.py",
       "source_location": "L4",
       "id": "templates_otp_template_get_otp_html",
-      "community": 1,
+      "community": 0,
       "norm_label": "get_otp_html()"
     },
     {
@@ -1142,7 +1196,7 @@
       "source_file": "src/shared/templates/otp_template.py",
       "source_location": "L1",
       "id": "templates_otp_template_rationale_1",
-      "community": 1,
+      "community": 0,
       "norm_label": "otp email html template."
     },
     {
@@ -1151,7 +1205,7 @@
       "source_file": "src/shared/templates/otp_template.py",
       "source_location": "L5",
       "id": "templates_otp_template_rationale_5",
-      "community": 1,
+      "community": 0,
       "norm_label": "return inline html for otp email."
     },
     {
@@ -1214,7 +1268,7 @@
       "source_file": "src/modules/auth/auth_controller.py",
       "source_location": "L118",
       "id": "auth_auth_controller_otp_generate",
-      "community": 1,
+      "community": 0,
       "norm_label": "otp_generate()"
     },
     {
@@ -1223,7 +1277,7 @@
       "source_file": "src/modules/auth/auth_controller.py",
       "source_location": "L133",
       "id": "auth_auth_controller_otp_resend",
-      "community": 1,
+      "community": 0,
       "norm_label": "otp_resend()"
     },
     {
@@ -1610,7 +1664,7 @@
       "source_file": "src/modules/auth/auth_dao.py",
       "source_location": "L1",
       "id": "src_modules_auth_auth_dao_py",
-      "community": 2,
+      "community": 0,
       "norm_label": "auth_dao.py"
     },
     {
@@ -1655,7 +1709,7 @@
       "source_file": "src/modules/auth/auth_dao.py",
       "source_location": "L82",
       "id": "auth_auth_dao_create_password_reset_token",
-      "community": 2,
+      "community": 0,
       "norm_label": "create_password_reset_token()"
     },
     {
@@ -1664,7 +1718,7 @@
       "source_file": "src/modules/auth/auth_dao.py",
       "source_location": "L97",
       "id": "auth_auth_dao_find_password_reset_by_token_hash",
-      "community": 2,
+      "community": 0,
       "norm_label": "find_password_reset_by_token_hash()"
     },
     {
@@ -1673,7 +1727,7 @@
       "source_file": "src/modules/auth/auth_dao.py",
       "source_location": "L109",
       "id": "auth_auth_dao_delete_password_reset_tokens_for_user",
-      "community": 2,
+      "community": 0,
       "norm_label": "delete_password_reset_tokens_for_user()"
     },
     {
@@ -1682,7 +1736,7 @@
       "source_file": "src/modules/auth/auth_dao.py",
       "source_location": "L115",
       "id": "auth_auth_dao_update_user_password",
-      "community": 2,
+      "community": 0,
       "norm_label": "update_user_password()"
     },
     {
@@ -1691,7 +1745,7 @@
       "source_file": "src/modules/auth/auth_dao.py",
       "source_location": "L1",
       "id": "auth_auth_dao_rationale_1",
-      "community": 2,
+      "community": 0,
       "norm_label": "auth-related db access: users (by email, create), accounts, password_reset_token"
     },
     {
@@ -1772,7 +1826,7 @@
       "source_file": "src/modules/auth/services/otp_service.py",
       "source_location": "L57",
       "id": "services_otp_service_generate_otp",
-      "community": 1,
+      "community": 0,
       "norm_label": "generate_otp()"
     },
     {
@@ -3081,195 +3135,6 @@
       "norm_label": "troubleshooting"
     },
     {
-      "label": "Virtual_Instructor_Dev.postman_environment.json",
-      "file_type": "code",
-      "source_file": "postman/Virtual_Instructor_Dev.postman_environment.json",
-      "source_location": "L1",
-      "community": 35,
-      "norm_label": "virtual_instructor_dev.postman_environment.json",
-      "id": "postman_virtual_instructor_dev_postman_environment_json"
-    },
-    {
-      "label": "id",
-      "file_type": "code",
-      "source_file": "postman/Virtual_Instructor_Dev.postman_environment.json",
-      "source_location": "L2",
-      "community": 35,
-      "norm_label": "id",
-      "id": "postman_virtual_instructor_dev_postman_environment_id"
-    },
-    {
-      "label": "name",
-      "file_type": "code",
-      "source_file": "postman/Virtual_Instructor_Dev.postman_environment.json",
-      "source_location": "L3",
-      "community": 35,
-      "norm_label": "name",
-      "id": "postman_virtual_instructor_dev_postman_environment_name"
-    },
-    {
-      "label": "values",
-      "file_type": "code",
-      "source_file": "postman/Virtual_Instructor_Dev.postman_environment.json",
-      "source_location": "L4",
-      "community": 35,
-      "norm_label": "values",
-      "id": "postman_virtual_instructor_dev_postman_environment_values"
-    },
-    {
-      "label": "_postman_variable_scope",
-      "file_type": "code",
-      "source_file": "postman/Virtual_Instructor_Dev.postman_environment.json",
-      "source_location": "L18",
-      "community": 35,
-      "norm_label": "_postman_variable_scope",
-      "id": "postman_virtual_instructor_dev_postman_environment_postman_variable_scope"
-    },
-    {
-      "label": "_postman_exported_at",
-      "file_type": "code",
-      "source_file": "postman/Virtual_Instructor_Dev.postman_environment.json",
-      "source_location": "L19",
-      "community": 35,
-      "norm_label": "_postman_exported_at",
-      "id": "postman_virtual_instructor_dev_postman_environment_postman_exported_at"
-    },
-    {
-      "label": "_postman_exported_using",
-      "file_type": "code",
-      "source_file": "postman/Virtual_Instructor_Dev.postman_environment.json",
-      "source_location": "L20",
-      "community": 35,
-      "norm_label": "_postman_exported_using",
-      "id": "postman_virtual_instructor_dev_postman_environment_postman_exported_using"
-    },
-    {
-      "label": "Virtual_Instructor_API.postman_collection.json",
-      "file_type": "code",
-      "source_file": "Virtual_Instructor_API.postman_collection.json",
-      "source_location": "L1",
-      "community": 30,
-      "norm_label": "virtual_instructor_api.postman_collection.json",
-      "id": "virtual_instructor_api_postman_collection_json"
-    },
-    {
-      "label": "info",
-      "file_type": "code",
-      "source_file": "Virtual_Instructor_API.postman_collection.json",
-      "source_location": "L2",
-      "community": 30,
-      "norm_label": "info",
-      "id": "server_virtual_instructor_api_postman_collection_info"
-    },
-    {
-      "label": "_postman_id",
-      "file_type": "code",
-      "source_file": "Virtual_Instructor_API.postman_collection.json",
-      "source_location": "L3",
-      "community": 30,
-      "norm_label": "_postman_id",
-      "id": "server_virtual_instructor_api_postman_collection_info_postman_id"
-    },
-    {
-      "label": "name",
-      "file_type": "code",
-      "source_file": "Virtual_Instructor_API.postman_collection.json",
-      "source_location": "L4",
-      "community": 30,
-      "norm_label": "name",
-      "id": "server_virtual_instructor_api_postman_collection_info_name"
-    },
-    {
-      "label": "description",
-      "file_type": "code",
-      "source_file": "Virtual_Instructor_API.postman_collection.json",
-      "source_location": "L5",
-      "community": 30,
-      "norm_label": "description",
-      "id": "server_virtual_instructor_api_postman_collection_info_description"
-    },
-    {
-      "label": "schema",
-      "file_type": "code",
-      "source_file": "Virtual_Instructor_API.postman_collection.json",
-      "source_location": "L6",
-      "community": 30,
-      "norm_label": "schema",
-      "id": "server_virtual_instructor_api_postman_collection_info_schema"
-    },
-    {
-      "label": "item",
-      "file_type": "code",
-      "source_file": "Virtual_Instructor_API.postman_collection.json",
-      "source_location": "L8",
-      "community": 30,
-      "norm_label": "item",
-      "id": "server_virtual_instructor_api_postman_collection_item"
-    },
-    {
-      "label": "Virtual_Instructor_Dev.postman_environment.json",
-      "file_type": "code",
-      "source_file": "Virtual_Instructor_Dev.postman_environment.json",
-      "source_location": "L1",
-      "community": 31,
-      "norm_label": "virtual_instructor_dev.postman_environment.json",
-      "id": "virtual_instructor_dev_postman_environment_json"
-    },
-    {
-      "label": "id",
-      "file_type": "code",
-      "source_file": "Virtual_Instructor_Dev.postman_environment.json",
-      "source_location": "L2",
-      "community": 31,
-      "norm_label": "id",
-      "id": "server_virtual_instructor_dev_postman_environment_id"
-    },
-    {
-      "label": "name",
-      "file_type": "code",
-      "source_file": "Virtual_Instructor_Dev.postman_environment.json",
-      "source_location": "L3",
-      "community": 31,
-      "norm_label": "name",
-      "id": "server_virtual_instructor_dev_postman_environment_name"
-    },
-    {
-      "label": "values",
-      "file_type": "code",
-      "source_file": "Virtual_Instructor_Dev.postman_environment.json",
-      "source_location": "L4",
-      "community": 31,
-      "norm_label": "values",
-      "id": "server_virtual_instructor_dev_postman_environment_values"
-    },
-    {
-      "label": "_postman_variable_scope",
-      "file_type": "code",
-      "source_file": "Virtual_Instructor_Dev.postman_environment.json",
-      "source_location": "L18",
-      "community": 31,
-      "norm_label": "_postman_variable_scope",
-      "id": "server_virtual_instructor_dev_postman_environment_postman_variable_scope"
-    },
-    {
-      "label": "_postman_exported_at",
-      "file_type": "code",
-      "source_file": "Virtual_Instructor_Dev.postman_environment.json",
-      "source_location": "L19",
-      "community": 31,
-      "norm_label": "_postman_exported_at",
-      "id": "server_virtual_instructor_dev_postman_environment_postman_exported_at"
-    },
-    {
-      "label": "_postman_exported_using",
-      "file_type": "code",
-      "source_file": "Virtual_Instructor_Dev.postman_environment.json",
-      "source_location": "L20",
-      "community": 31,
-      "norm_label": "_postman_exported_using",
-      "id": "server_virtual_instructor_dev_postman_environment_postman_exported_using"
-    },
-    {
       "label": "Flask REST API Project",
       "file_type": "concept",
       "source_file": "README.md",
@@ -3469,6 +3334,126 @@
       "target": "config_redis_client_close_redis"
     },
     {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "Virtual_Instructor_API.postman_collection.json",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "virtual_instructor_api_postman_collection_json",
+      "target": "server_virtual_instructor_api_postman_collection_info",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "Virtual_Instructor_API.postman_collection.json",
+      "source_location": "L8",
+      "weight": 1.0,
+      "source": "virtual_instructor_api_postman_collection_json",
+      "target": "server_virtual_instructor_api_postman_collection_item",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "Virtual_Instructor_API.postman_collection.json",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "server_virtual_instructor_api_postman_collection_info",
+      "target": "server_virtual_instructor_api_postman_collection_info_postman_id",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "Virtual_Instructor_API.postman_collection.json",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "server_virtual_instructor_api_postman_collection_info",
+      "target": "server_virtual_instructor_api_postman_collection_info_name",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "Virtual_Instructor_API.postman_collection.json",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "server_virtual_instructor_api_postman_collection_info",
+      "target": "server_virtual_instructor_api_postman_collection_info_description",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "Virtual_Instructor_API.postman_collection.json",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "server_virtual_instructor_api_postman_collection_info",
+      "target": "server_virtual_instructor_api_postman_collection_info_schema",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "Virtual_Instructor_Dev.postman_environment.json",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "virtual_instructor_dev_postman_environment_json",
+      "target": "server_virtual_instructor_dev_postman_environment_id",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "Virtual_Instructor_Dev.postman_environment.json",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "virtual_instructor_dev_postman_environment_json",
+      "target": "server_virtual_instructor_dev_postman_environment_name",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "Virtual_Instructor_Dev.postman_environment.json",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "virtual_instructor_dev_postman_environment_json",
+      "target": "server_virtual_instructor_dev_postman_environment_values",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "Virtual_Instructor_Dev.postman_environment.json",
+      "source_location": "L18",
+      "weight": 1.0,
+      "source": "virtual_instructor_dev_postman_environment_json",
+      "target": "server_virtual_instructor_dev_postman_environment_postman_variable_scope",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "Virtual_Instructor_Dev.postman_environment.json",
+      "source_location": "L19",
+      "weight": 1.0,
+      "source": "virtual_instructor_dev_postman_environment_json",
+      "target": "server_virtual_instructor_dev_postman_environment_postman_exported_at",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "Virtual_Instructor_Dev.postman_environment.json",
+      "source_location": "L20",
+      "weight": 1.0,
+      "source": "virtual_instructor_dev_postman_environment_json",
+      "target": "server_virtual_instructor_dev_postman_environment_postman_exported_using",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "wsgi.py",
@@ -3488,76 +3473,6 @@
       "confidence_score": 1.0,
       "source": "wsgi_py",
       "target": "src_app_create_app"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "postman/Virtual_Instructor_API.postman_collection.json",
-      "source_location": "L2",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "postman_virtual_instructor_api_postman_collection_json",
-      "target": "postman_virtual_instructor_api_postman_collection_info"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "postman/Virtual_Instructor_API.postman_collection.json",
-      "source_location": "L8",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "postman_virtual_instructor_api_postman_collection_json",
-      "target": "postman_virtual_instructor_api_postman_collection_item"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "postman/Virtual_Instructor_API.postman_collection.json",
-      "source_location": "L472",
-      "weight": 1.0,
-      "source": "postman_virtual_instructor_api_postman_collection_json",
-      "target": "postman_virtual_instructor_api_postman_collection_variable",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "postman/Virtual_Instructor_API.postman_collection.json",
-      "source_location": "L3",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "postman_virtual_instructor_api_postman_collection_info",
-      "target": "postman_virtual_instructor_api_postman_collection_info_postman_id"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "postman/Virtual_Instructor_API.postman_collection.json",
-      "source_location": "L4",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "postman_virtual_instructor_api_postman_collection_info",
-      "target": "postman_virtual_instructor_api_postman_collection_info_name"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "postman/Virtual_Instructor_API.postman_collection.json",
-      "source_location": "L5",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "postman_virtual_instructor_api_postman_collection_info",
-      "target": "postman_virtual_instructor_api_postman_collection_info_description"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "postman/Virtual_Instructor_API.postman_collection.json",
-      "source_location": "L6",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "postman_virtual_instructor_api_postman_collection_info",
-      "target": "postman_virtual_instructor_api_postman_collection_info_schema"
     },
     {
       "relation": "contains",
@@ -7485,9 +7400,9 @@
       "source_file": "README.md",
       "source_location": "L1",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "readme_md",
-      "target": "server_readme_flask_rest_api"
+      "target": "server_readme_flask_rest_api",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -7495,9 +7410,9 @@
       "source_file": "README.md",
       "source_location": "L10",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "server_readme_flask_rest_api",
-      "target": "server_readme_stack"
+      "target": "server_readme_stack",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -7505,9 +7420,9 @@
       "source_file": "README.md",
       "source_location": "L20",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "server_readme_flask_rest_api",
-      "target": "server_readme_env"
+      "target": "server_readme_env",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -7515,9 +7430,9 @@
       "source_file": "README.md",
       "source_location": "L28",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "server_readme_flask_rest_api",
-      "target": "server_readme_setup"
+      "target": "server_readme_setup",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -7525,9 +7440,9 @@
       "source_file": "README.md",
       "source_location": "L38",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "server_readme_flask_rest_api",
-      "target": "server_readme_run"
+      "target": "server_readme_run",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -7535,9 +7450,9 @@
       "source_file": "README.md",
       "source_location": "L43",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "server_readme_flask_rest_api",
-      "target": "server_readme_layout"
+      "target": "server_readme_layout",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -7545,9 +7460,9 @@
       "source_file": "README.md",
       "source_location": "L69",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "server_readme_flask_rest_api",
-      "target": "server_readme_api"
+      "target": "server_readme_api",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -7555,9 +7470,9 @@
       "source_file": "README.md",
       "source_location": "L87",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "server_readme_flask_rest_api",
-      "target": "server_readme_migrations"
+      "target": "server_readme_migrations",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -7565,9 +7480,9 @@
       "source_file": "README.md",
       "source_location": "L30",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "server_readme_setup",
-      "target": "server_readme_codeblock_1"
+      "target": "server_readme_codeblock_1",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -7575,9 +7490,9 @@
       "source_file": "README.md",
       "source_location": "L45",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "server_readme_layout",
-      "target": "server_readme_codeblock_2"
+      "target": "server_readme_codeblock_2",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -7585,9 +7500,9 @@
       "source_file": "README.md",
       "source_location": "L89",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "server_readme_migrations",
-      "target": "server_readme_codeblock_3"
+      "target": "server_readme_codeblock_3",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -7595,9 +7510,9 @@
       "source_file": ".agents/workflows/graphify.md",
       "source_location": "L6",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "agents_workflows_graphify_md",
-      "target": "workflows_graphify_workflow_graphify"
+      "target": "workflows_graphify_workflow_graphify",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -7605,9 +7520,9 @@
       "source_file": ".agents/rules/graphify.md",
       "source_location": "L6",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "agents_rules_graphify_md",
-      "target": "rules_graphify_graphify"
+      "target": "rules_graphify_graphify",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -7615,9 +7530,9 @@
       "source_file": "docs/API.md",
       "source_location": "L1",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_api_md",
-      "target": "docs_api_api_documentation_postman_ready"
+      "target": "docs_api_api_documentation_postman_ready",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -7625,9 +7540,9 @@
       "source_file": "docs/API.md",
       "source_location": "L7",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_api_api_documentation_postman_ready",
-      "target": "docs_api_user_roles_overview"
+      "target": "docs_api_user_roles_overview",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -7635,9 +7550,9 @@
       "source_file": "docs/API.md",
       "source_location": "L17",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_api_api_documentation_postman_ready",
-      "target": "docs_api_postman_setup"
+      "target": "docs_api_postman_setup",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -7645,9 +7560,9 @@
       "source_file": "docs/API.md",
       "source_location": "L64",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_api_api_documentation_postman_ready",
-      "target": "docs_api_response_format"
+      "target": "docs_api_response_format",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -7655,9 +7570,9 @@
       "source_file": "docs/API.md",
       "source_location": "L95",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_api_api_documentation_postman_ready",
-      "target": "docs_api_endpoints_copy_into_postman"
+      "target": "docs_api_endpoints_copy_into_postman",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -7665,9 +7580,9 @@
       "source_file": "docs/API.md",
       "source_location": "L509",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_api_api_documentation_postman_ready",
-      "target": "docs_api_quick_reference"
+      "target": "docs_api_quick_reference",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -7675,9 +7590,9 @@
       "source_file": "docs/API.md",
       "source_location": "L19",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_api_postman_setup",
-      "target": "docs_api_1_environment_variables"
+      "target": "docs_api_1_environment_variables",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -7685,9 +7600,9 @@
       "source_file": "docs/API.md",
       "source_location": "L30",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_api_postman_setup",
-      "target": "docs_api_2_saving_the_access_token"
+      "target": "docs_api_2_saving_the_access_token",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -7695,9 +7610,9 @@
       "source_file": "docs/API.md",
       "source_location": "L47",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_api_postman_setup",
-      "target": "docs_api_3_cookies_refresh_logout"
+      "target": "docs_api_3_cookies_refresh_logout",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -7705,9 +7620,9 @@
       "source_file": "docs/API.md",
       "source_location": "L54",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_api_postman_setup",
-      "target": "docs_api_4_suggested_flow_for_testing"
+      "target": "docs_api_4_suggested_flow_for_testing",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -7715,9 +7630,9 @@
       "source_file": "docs/API.md",
       "source_location": "L38",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_api_2_saving_the_access_token",
-      "target": "docs_api_codeblock_1"
+      "target": "docs_api_codeblock_1",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -7725,9 +7640,9 @@
       "source_file": "docs/API.md",
       "source_location": "L68",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_api_response_format",
-      "target": "docs_api_codeblock_2"
+      "target": "docs_api_codeblock_2",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -7735,9 +7650,9 @@
       "source_file": "docs/API.md",
       "source_location": "L78",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_api_response_format",
-      "target": "docs_api_codeblock_3"
+      "target": "docs_api_codeblock_3",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -7745,9 +7660,9 @@
       "source_file": "docs/API.md",
       "source_location": "L89",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_api_response_format",
-      "target": "docs_api_codeblock_4"
+      "target": "docs_api_codeblock_4",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -7755,9 +7670,9 @@
       "source_file": "docs/API.md",
       "source_location": "L97",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_api_endpoints_copy_into_postman",
-      "target": "docs_api_health"
+      "target": "docs_api_health",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -7765,9 +7680,9 @@
       "source_file": "docs/API.md",
       "source_location": "L118",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_api_endpoints_copy_into_postman",
-      "target": "docs_api_auth_otp_generate"
+      "target": "docs_api_auth_otp_generate",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -7775,9 +7690,9 @@
       "source_file": "docs/API.md",
       "source_location": "L147",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_api_endpoints_copy_into_postman",
-      "target": "docs_api_auth_otp_resend"
+      "target": "docs_api_auth_otp_resend",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -7785,9 +7700,9 @@
       "source_file": "docs/API.md",
       "source_location": "L168",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_api_endpoints_copy_into_postman",
-      "target": "docs_api_auth_register"
+      "target": "docs_api_auth_register",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -7795,9 +7710,9 @@
       "source_file": "docs/API.md",
       "source_location": "L209",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_api_endpoints_copy_into_postman",
-      "target": "docs_api_auth_login"
+      "target": "docs_api_auth_login",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -7805,9 +7720,9 @@
       "source_file": "docs/API.md",
       "source_location": "L248",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_api_endpoints_copy_into_postman",
-      "target": "docs_api_auth_refresh"
+      "target": "docs_api_auth_refresh",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -7815,9 +7730,9 @@
       "source_file": "docs/API.md",
       "source_location": "L278",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_api_endpoints_copy_into_postman",
-      "target": "docs_api_auth_logout"
+      "target": "docs_api_auth_logout",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -7825,9 +7740,9 @@
       "source_file": "docs/API.md",
       "source_location": "L303",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_api_endpoints_copy_into_postman",
-      "target": "docs_api_auth_logout_all_protected"
+      "target": "docs_api_auth_logout_all_protected",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -7835,9 +7750,9 @@
       "source_file": "docs/API.md",
       "source_location": "L328",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_api_endpoints_copy_into_postman",
-      "target": "docs_api_auth_forget_password"
+      "target": "docs_api_auth_forget_password",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -7845,9 +7760,9 @@
       "source_file": "docs/API.md",
       "source_location": "L357",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_api_endpoints_copy_into_postman",
-      "target": "docs_api_auth_reset_password"
+      "target": "docs_api_auth_reset_password",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -7855,9 +7770,9 @@
       "source_file": "docs/API.md",
       "source_location": "L389",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_api_endpoints_copy_into_postman",
-      "target": "docs_api_auth_google_oauth_browser"
+      "target": "docs_api_auth_google_oauth_browser",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -7865,9 +7780,9 @@
       "source_file": "docs/API.md",
       "source_location": "L397",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_api_endpoints_copy_into_postman",
-      "target": "docs_api_user_get_all_protected"
+      "target": "docs_api_user_get_all_protected",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -7875,9 +7790,9 @@
       "source_file": "docs/API.md",
       "source_location": "L437",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_api_endpoints_copy_into_postman",
-      "target": "docs_api_user_get_current_user_me"
+      "target": "docs_api_user_get_current_user_me",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -7885,9 +7800,9 @@
       "source_file": "docs/API.md",
       "source_location": "L472",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_api_endpoints_copy_into_postman",
-      "target": "docs_api_user_update_current_user_set_role_onboarding"
+      "target": "docs_api_user_update_current_user_set_role_onboarding",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -7895,9 +7810,9 @@
       "source_file": "docs/API.md",
       "source_location": "L110",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_api_health",
-      "target": "docs_api_codeblock_5"
+      "target": "docs_api_codeblock_5",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -7905,9 +7820,9 @@
       "source_file": "docs/API.md",
       "source_location": "L129",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_api_auth_otp_generate",
-      "target": "docs_api_codeblock_6"
+      "target": "docs_api_codeblock_6",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -7915,9 +7830,9 @@
       "source_file": "docs/API.md",
       "source_location": "L137",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_api_auth_otp_generate",
-      "target": "docs_api_codeblock_7"
+      "target": "docs_api_codeblock_7",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -7925,9 +7840,9 @@
       "source_file": "docs/API.md",
       "source_location": "L158",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_api_auth_otp_resend",
-      "target": "docs_api_codeblock_8"
+      "target": "docs_api_codeblock_8",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -7935,9 +7850,9 @@
       "source_file": "docs/API.md",
       "source_location": "L179",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_api_auth_register",
-      "target": "docs_api_codeblock_9"
+      "target": "docs_api_codeblock_9",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -7945,9 +7860,9 @@
       "source_file": "docs/API.md",
       "source_location": "L190",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_api_auth_register",
-      "target": "docs_api_codeblock_10"
+      "target": "docs_api_codeblock_10",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -7955,9 +7870,9 @@
       "source_file": "docs/API.md",
       "source_location": "L220",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_api_auth_login",
-      "target": "docs_api_codeblock_11"
+      "target": "docs_api_codeblock_11",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -7965,9 +7880,9 @@
       "source_file": "docs/API.md",
       "source_location": "L229",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_api_auth_login",
-      "target": "docs_api_codeblock_12"
+      "target": "docs_api_codeblock_12",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -7975,9 +7890,9 @@
       "source_file": "docs/API.md",
       "source_location": "L263",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_api_auth_refresh",
-      "target": "docs_api_codeblock_13"
+      "target": "docs_api_codeblock_13",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -7985,9 +7900,9 @@
       "source_file": "docs/API.md",
       "source_location": "L293",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_api_auth_logout",
-      "target": "docs_api_codeblock_14"
+      "target": "docs_api_codeblock_14",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -7995,9 +7910,9 @@
       "source_file": "docs/API.md",
       "source_location": "L316",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_api_auth_logout_all_protected",
-      "target": "docs_api_codeblock_15"
+      "target": "docs_api_codeblock_15",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -8005,9 +7920,9 @@
       "source_file": "docs/API.md",
       "source_location": "L339",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_api_auth_forget_password",
-      "target": "docs_api_codeblock_16"
+      "target": "docs_api_codeblock_16",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -8015,9 +7930,9 @@
       "source_file": "docs/API.md",
       "source_location": "L347",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_api_auth_forget_password",
-      "target": "docs_api_codeblock_17"
+      "target": "docs_api_codeblock_17",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -8025,9 +7940,9 @@
       "source_file": "docs/API.md",
       "source_location": "L368",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_api_auth_reset_password",
-      "target": "docs_api_codeblock_18"
+      "target": "docs_api_codeblock_18",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -8035,9 +7950,9 @@
       "source_file": "docs/API.md",
       "source_location": "L377",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_api_auth_reset_password",
-      "target": "docs_api_codeblock_19"
+      "target": "docs_api_codeblock_19",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -8045,9 +7960,9 @@
       "source_file": "docs/API.md",
       "source_location": "L410",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_api_user_get_all_protected",
-      "target": "docs_api_codeblock_20"
+      "target": "docs_api_codeblock_20",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -8055,9 +7970,9 @@
       "source_file": "docs/API.md",
       "source_location": "L452",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_api_user_get_current_user_me",
-      "target": "docs_api_codeblock_21"
+      "target": "docs_api_codeblock_21",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -8065,9 +7980,9 @@
       "source_file": "docs/API.md",
       "source_location": "L489",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_api_user_update_current_user_set_role_onboarding",
-      "target": "docs_api_codeblock_22"
+      "target": "docs_api_codeblock_22",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -8075,9 +7990,9 @@
       "source_file": "docs/API.md",
       "source_location": "L497",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_api_user_update_current_user_set_role_onboarding",
-      "target": "docs_api_codeblock_23"
+      "target": "docs_api_codeblock_23",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -8085,9 +8000,9 @@
       "source_file": "docs/ACTIVITY_ROLES.md",
       "source_location": "L1",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_activity_roles_md",
-      "target": "docs_activity_roles_activity_based_user_roles"
+      "target": "docs_activity_roles_activity_based_user_roles",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -8095,9 +8010,9 @@
       "source_file": "docs/ACTIVITY_ROLES.md",
       "source_location": "L5",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_activity_roles_activity_based_user_roles",
-      "target": "docs_activity_roles_flow"
+      "target": "docs_activity_roles_flow",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -8105,9 +8020,9 @@
       "source_file": "docs/ACTIVITY_ROLES.md",
       "source_location": "L11",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_activity_roles_activity_based_user_roles",
-      "target": "docs_activity_roles_integration_post_purchase_save_handlers"
+      "target": "docs_activity_roles_integration_post_purchase_save_handlers",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -8115,9 +8030,9 @@
       "source_file": "docs/ACTIVITY_ROLES.md",
       "source_location": "L40",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_activity_roles_activity_based_user_roles",
-      "target": "docs_activity_roles_periodic_job"
+      "target": "docs_activity_roles_periodic_job",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -8125,9 +8040,9 @@
       "source_file": "docs/ACTIVITY_ROLES.md",
       "source_location": "L50",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_activity_roles_activity_based_user_roles",
-      "target": "docs_activity_roles_multiple_roles"
+      "target": "docs_activity_roles_multiple_roles",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -8135,9 +8050,9 @@
       "source_file": "docs/ACTIVITY_ROLES.md",
       "source_location": "L25",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_activity_roles_integration_post_purchase_save_handlers",
-      "target": "docs_activity_roles_codeblock_1"
+      "target": "docs_activity_roles_codeblock_1",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -8145,9 +8060,9 @@
       "source_file": "docs/ACTIVITY_ROLES.md",
       "source_location": "L34",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_activity_roles_integration_post_purchase_save_handlers",
-      "target": "docs_activity_roles_codeblock_2"
+      "target": "docs_activity_roles_codeblock_2",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -8155,9 +8070,9 @@
       "source_file": "docs/ACTIVITY_ROLES.md",
       "source_location": "L44",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_activity_roles_periodic_job",
-      "target": "docs_activity_roles_codeblock_3"
+      "target": "docs_activity_roles_codeblock_3",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -8165,9 +8080,9 @@
       "source_file": "docs/README.md",
       "source_location": "L1",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_readme_md",
-      "target": "docs_readme_project_setup"
+      "target": "docs_readme_project_setup",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -8175,9 +8090,9 @@
       "source_file": "docs/README.md",
       "source_location": "L5",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_readme_project_setup",
-      "target": "docs_readme_prerequisites"
+      "target": "docs_readme_prerequisites",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -8185,9 +8100,9 @@
       "source_file": "docs/README.md",
       "source_location": "L13",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_readme_project_setup",
-      "target": "docs_readme_1_clone_and_enter_the_project"
+      "target": "docs_readme_1_clone_and_enter_the_project",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -8195,9 +8110,9 @@
       "source_file": "docs/README.md",
       "source_location": "L19",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_readme_project_setup",
-      "target": "docs_readme_2_virtual_environment"
+      "target": "docs_readme_2_virtual_environment",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -8205,9 +8120,9 @@
       "source_file": "docs/README.md",
       "source_location": "L28",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_readme_project_setup",
-      "target": "docs_readme_3_install_dependencies"
+      "target": "docs_readme_3_install_dependencies",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -8215,9 +8130,9 @@
       "source_file": "docs/README.md",
       "source_location": "L34",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_readme_project_setup",
-      "target": "docs_readme_4_environment_variables"
+      "target": "docs_readme_4_environment_variables",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -8225,9 +8140,9 @@
       "source_file": "docs/README.md",
       "source_location": "L59",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_readme_project_setup",
-      "target": "docs_readme_5_database"
+      "target": "docs_readme_5_database",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -8235,9 +8150,9 @@
       "source_file": "docs/README.md",
       "source_location": "L72",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_readme_project_setup",
-      "target": "docs_readme_6_redis"
+      "target": "docs_readme_6_redis",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -8245,9 +8160,9 @@
       "source_file": "docs/README.md",
       "source_location": "L80",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_readme_project_setup",
-      "target": "docs_readme_7_run_the_application"
+      "target": "docs_readme_7_run_the_application",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -8255,9 +8170,9 @@
       "source_file": "docs/README.md",
       "source_location": "L104",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_readme_project_setup",
-      "target": "docs_readme_8_verify"
+      "target": "docs_readme_8_verify",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -8265,9 +8180,9 @@
       "source_file": "docs/README.md",
       "source_location": "L110",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_readme_project_setup",
-      "target": "docs_readme_troubleshooting"
+      "target": "docs_readme_troubleshooting",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -8275,9 +8190,9 @@
       "source_file": "docs/README.md",
       "source_location": "L15",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_readme_1_clone_and_enter_the_project",
-      "target": "docs_readme_codeblock_1"
+      "target": "docs_readme_codeblock_1",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -8285,9 +8200,9 @@
       "source_file": "docs/README.md",
       "source_location": "L23",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_readme_2_virtual_environment",
-      "target": "docs_readme_codeblock_2"
+      "target": "docs_readme_codeblock_2",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -8295,9 +8210,9 @@
       "source_file": "docs/README.md",
       "source_location": "L30",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_readme_3_install_dependencies",
-      "target": "docs_readme_codeblock_3"
+      "target": "docs_readme_codeblock_3",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -8305,9 +8220,9 @@
       "source_file": "docs/README.md",
       "source_location": "L44",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_readme_4_environment_variables",
-      "target": "docs_readme_codeblock_4"
+      "target": "docs_readme_codeblock_4",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -8315,9 +8230,9 @@
       "source_file": "docs/README.md",
       "source_location": "L63",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_readme_5_database",
-      "target": "docs_readme_codeblock_5"
+      "target": "docs_readme_codeblock_5",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -8325,9 +8240,9 @@
       "source_file": "docs/README.md",
       "source_location": "L67",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_readme_5_database",
-      "target": "docs_readme_codeblock_6"
+      "target": "docs_readme_codeblock_6",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -8335,9 +8250,9 @@
       "source_file": "docs/README.md",
       "source_location": "L84",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_readme_7_run_the_application",
-      "target": "docs_readme_codeblock_7"
+      "target": "docs_readme_codeblock_7",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -8345,9 +8260,9 @@
       "source_file": "docs/README.md",
       "source_location": "L90",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_readme_7_run_the_application",
-      "target": "docs_readme_codeblock_8"
+      "target": "docs_readme_codeblock_8",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -8355,189 +8270,9 @@
       "source_file": "docs/README.md",
       "source_location": "L98",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_readme_7_run_the_application",
-      "target": "docs_readme_codeblock_9"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "postman/Virtual_Instructor_Dev.postman_environment.json",
-      "source_location": "L2",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "postman_virtual_instructor_dev_postman_environment_json",
-      "target": "postman_virtual_instructor_dev_postman_environment_id"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "postman/Virtual_Instructor_Dev.postman_environment.json",
-      "source_location": "L3",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "postman_virtual_instructor_dev_postman_environment_json",
-      "target": "postman_virtual_instructor_dev_postman_environment_name"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "postman/Virtual_Instructor_Dev.postman_environment.json",
-      "source_location": "L4",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "postman_virtual_instructor_dev_postman_environment_json",
-      "target": "postman_virtual_instructor_dev_postman_environment_values"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "postman/Virtual_Instructor_Dev.postman_environment.json",
-      "source_location": "L18",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "postman_virtual_instructor_dev_postman_environment_json",
-      "target": "postman_virtual_instructor_dev_postman_environment_postman_variable_scope"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "postman/Virtual_Instructor_Dev.postman_environment.json",
-      "source_location": "L19",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "postman_virtual_instructor_dev_postman_environment_json",
-      "target": "postman_virtual_instructor_dev_postman_environment_postman_exported_at"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "postman/Virtual_Instructor_Dev.postman_environment.json",
-      "source_location": "L20",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "postman_virtual_instructor_dev_postman_environment_json",
-      "target": "postman_virtual_instructor_dev_postman_environment_postman_exported_using"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "Virtual_Instructor_API.postman_collection.json",
-      "source_location": "L2",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "virtual_instructor_api_postman_collection_json",
-      "target": "server_virtual_instructor_api_postman_collection_info"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "Virtual_Instructor_API.postman_collection.json",
-      "source_location": "L8",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "virtual_instructor_api_postman_collection_json",
-      "target": "server_virtual_instructor_api_postman_collection_item"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "Virtual_Instructor_API.postman_collection.json",
-      "source_location": "L3",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_virtual_instructor_api_postman_collection_info",
-      "target": "server_virtual_instructor_api_postman_collection_info_postman_id"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "Virtual_Instructor_API.postman_collection.json",
-      "source_location": "L4",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_virtual_instructor_api_postman_collection_info",
-      "target": "server_virtual_instructor_api_postman_collection_info_name"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "Virtual_Instructor_API.postman_collection.json",
-      "source_location": "L5",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_virtual_instructor_api_postman_collection_info",
-      "target": "server_virtual_instructor_api_postman_collection_info_description"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "Virtual_Instructor_API.postman_collection.json",
-      "source_location": "L6",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_virtual_instructor_api_postman_collection_info",
-      "target": "server_virtual_instructor_api_postman_collection_info_schema"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "Virtual_Instructor_Dev.postman_environment.json",
-      "source_location": "L2",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "virtual_instructor_dev_postman_environment_json",
-      "target": "server_virtual_instructor_dev_postman_environment_id"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "Virtual_Instructor_Dev.postman_environment.json",
-      "source_location": "L3",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "virtual_instructor_dev_postman_environment_json",
-      "target": "server_virtual_instructor_dev_postman_environment_name"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "Virtual_Instructor_Dev.postman_environment.json",
-      "source_location": "L4",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "virtual_instructor_dev_postman_environment_json",
-      "target": "server_virtual_instructor_dev_postman_environment_values"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "Virtual_Instructor_Dev.postman_environment.json",
-      "source_location": "L18",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "virtual_instructor_dev_postman_environment_json",
-      "target": "server_virtual_instructor_dev_postman_environment_postman_variable_scope"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "Virtual_Instructor_Dev.postman_environment.json",
-      "source_location": "L19",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "virtual_instructor_dev_postman_environment_json",
-      "target": "server_virtual_instructor_dev_postman_environment_postman_exported_at"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "Virtual_Instructor_Dev.postman_environment.json",
-      "source_location": "L20",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "virtual_instructor_dev_postman_environment_json",
-      "target": "server_virtual_instructor_dev_postman_environment_postman_exported_using"
+      "target": "docs_readme_codeblock_9",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
