@@ -5,7 +5,6 @@ Python Flask backend with **PostgreSQL** (SQLAlchemy 2.0), **Alembic**, and **Re
 **Documentation:** See the [`docs/`](docs/) folder:
 - [**Project setup**](docs/README.md) – prerequisites, env, DB, Redis, run, troubleshooting
 - [**API reference**](docs/API.md) – endpoints, request/response format, auth
-- [**Activity-based roles**](docs/ACTIVITY_ROLES.md) – role-from-activity integration for post/purchase/save handlers, `flask recalc-roles`
 
 ## Stack
 
@@ -57,7 +56,6 @@ project_root/
 │   │   └── templates/     # OTP, password-reset HTML
 │   └── modules/
 │       ├── auth/           # auth_routes, auth_controller, auth_dao, services (OTP, password_reset), google_oauth_service
-│       ├── user/           # user_routes, user_controller, user_dao
 │       └── sessions/       # session_service (Redis), refresh_token_dao
 ├── alembic/
 │   ├── env.py
@@ -77,10 +75,6 @@ project_root/
   - `POST /logout`, `POST /logout-all` (protected)
   - `POST /forget-password`, `POST /reset-password`
   - `GET /google`, `GET /google/callback`
-- **User** (`/api/user`):
-  - `GET /getall` – protected; `{ "users", "count" }`
-  - `GET /me`, `PATCH /me` – protected; profile and role (single or comma-separated; response role as array when multiple)
-- **CLI:** `FLASK_APP=src.app:create_app flask recalc-roles` – recalculate user roles from activity counts
 
 Responses: `{ "success": true, "message": "...", "data": ... }` or `{ "success": false, "message": "..." }`.
 

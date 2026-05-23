@@ -4,7 +4,6 @@ from src.shared.models.account import Account
 from src.shared.models.session import Session
 from src.shared.models.refresh_token import RefreshToken
 from src.shared.models.password_reset_token import PasswordResetToken
-from src.shared.models.user_activity_count import UserActivityCount
 
 __all__ = [
     "User",
@@ -12,5 +11,4 @@ __all__ = [
     "Session",
     "RefreshToken",
     "PasswordResetToken",
-    "UserActivityCount",
 ]

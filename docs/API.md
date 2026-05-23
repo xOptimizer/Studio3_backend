@@ -4,15 +4,7 @@ For the Flask backend. Use this doc to build and test requests in Postman and to
 
 ---
 
-## User roles (overview)
 
-- **Role values:** `artist`, `collector`, `enthusiast`. A user can have one or more roles (e.g. both artist and collector).
-- **Onboarding:** After first signup or login, the frontend shows an onboarding screen; the user chooses role(s) and the frontend calls **PATCH /api/user/me** with `role`. Until then, `data.user.role` is `null`.
-- **Activity-based updates:** Role(s) can later be updated automatically from platform activity (posting/selling, buying, saving). See [Activity-based roles](ACTIVITY_ROLES.md).
-- **Primary interest only:** Role is not used for permission checks. Artists can purchase; collectors can post.
-- **Response shape:** In GET /me, getall, and PATCH /me responses, `role` is returned as a **string** when single (e.g. `"artist"`) or as an **array** when multiple (e.g. `["artist", "collector"]`). Auth responses (login/register/refresh) return `user.role` as stored (string, possibly comma-separated).
-
----
 
 ## Postman setup
 
@@ -55,9 +47,8 @@ The server sets an httpOnly cookie `refreshToken` on **Login**, **Register**, an
 
 1. **GET** `{{baseUrl}}/` → Health check.
 2. **POST** `{{baseUrl}}/api/auth/login` (or register) → Get token; use the Tests script above to set `accessToken`.
-3. **GET** `{{baseUrl}}/api/user/getall` with header `Authorization: Bearer {{accessToken}}` → Protected route.
-4. **POST** `{{baseUrl}}/api/auth/refresh` (no headers, cookies sent automatically) → New access token.
-5. **POST** `{{baseUrl}}/api/auth/logout` or **POST** `{{baseUrl}}/api/auth/logout-all` (with Bearer token for logout-all).
+3. **POST** `{{baseUrl}}/api/auth/refresh` (no headers, cookies sent automatically) → New access token.
+4. **POST** `{{baseUrl}}/api/auth/logout` or **POST** `{{baseUrl}}/api/auth/logout-all` (with Bearer token for logout-all).
 
 ---
 
@@ -394,117 +385,7 @@ Error: `400` if token invalid/expired or `newPassword` missing.
 
 ---
 
-### User – Get all (protected)
 
-**GET** `{{baseUrl}}/api/user/getall`
-
-| | |
-|--|--|
-| **Method** | `GET` |
-| **URL** | `{{baseUrl}}/api/user/getall` |
-| **Headers** | `Authorization: Bearer {{accessToken}}` |
-| **Body** | *(none)* |
-
-**Example response (200):**
-
-```json
-{
-  "success": true,
-  "message": "Users fetched successfully.",
-  "data": {
-    "users": [
-      {
-        "id": "550e8400-e29b-41d4-a716-446655440000",
-        "email": "user@example.com",
-        "name": "John Doe",
-        "image": null,
-        "email_verified": true,
-        "role": null,
-        "created_at": "2025-02-20T12:00:00+00:00"
-      }
-    ],
-    "count": 1
-  }
-}
-```
-
-**`role`:** String when single (e.g. `"artist"`), array when multiple (e.g. `["artist", "collector"]`), or `null` until set via onboarding or activity.
-
-Error: `401` if token missing/invalid or session expired.
-
----
-
-### User – Get current user (me)
-
-**GET** `{{baseUrl}}/api/user/me`
-
-| | |
-|--|--|
-| **Method** | `GET` |
-| **URL** | `{{baseUrl}}/api/user/me` |
-| **Headers** | `Authorization: Bearer {{accessToken}}` |
-| **Body** | *(none)* |
-
-Returns the current user's profile. Use this to check `role` (e.g. if `null`, show onboarding). **`role`** is a string when single, an array when multiple (e.g. `["artist", "collector"]`), or `null`.
-
-**Example response (200):**
-
-```json
-{
-  "success": true,
-  "message": "Profile fetched.",
-  "data": {
-    "id": "uuid",
-    "email": "user@example.com",
-    "name": "John Doe",
-    "image": null,
-    "email_verified": true,
-    "role": null,
-    "created_at": "2025-02-22T..."
-  }
-}
-```
-
-Error: `401` if not authenticated; `404` if user not found.
-
----
-
-### User – Update current user (set role / onboarding)
-
-**PATCH** `{{baseUrl}}/api/user/me`
-
-| | |
-|--|--|
-| **Method** | `PATCH` |
-| **URL** | `{{baseUrl}}/api/user/me` |
-| **Headers** | `Content-Type: application/json`, `Authorization: Bearer {{accessToken}}` |
-| **Body** | raw JSON |
-
-Set or update the current user's role (used after onboarding or for the artist/collector toggle). **Body:** `role` is a string—either a single value or comma-separated for multiple (e.g. `"artist"` or `"artist,collector"`). Allowed values: `artist`, `collector`, `enthusiast`.
-
-**Note:** Role indicates the user's *primary* interest. It is not used for permission checks—e.g. artists can purchase, collectors can post.
-
-**Single role:**
-
-```json
-{
-  "role": "artist"
-}
-```
-
-**Multiple roles (comma-separated):**
-
-```json
-{
-  "role": "artist,collector"
-}
-```
-
-**Example response (200):** Returns updated profile (same shape as GET /api/user/me). The `role` field is a string when single, an array when multiple (e.g. `["artist", "collector"]`).
-
-Error: `400` if `role` missing or contains invalid value(s); `401` if not authenticated.
-
----
 
 ## Quick reference
 
@@ -522,8 +403,6 @@ Error: `400` if `role` missing or contains invalid value(s); `401` if not authen
 | POST | `{{baseUrl}}/api/auth/reset-password` | — | `{ "token", "newPassword" }` |
 | GET | `{{baseUrl}}/api/auth/google` | — | Browser redirect |
 | GET | `{{baseUrl}}/api/auth/google/callback` | — | OAuth callback |
-| GET | `{{baseUrl}}/api/user/getall` | Bearer | — |
-| GET | `{{baseUrl}}/api/user/me` | Bearer | — |
-| PATCH | `{{baseUrl}}/api/user/me` | Bearer | `{ "role": "artist" \| "collector" \| "enthusiast" \| "artist,collector" }` |
+
 
 **Auth column:** “Bearer” = `Authorization: Bearer {{accessToken}}`; “Cookie” = send cookies (Postman does this automatically after login/register/refresh).

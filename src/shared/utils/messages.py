@@ -20,5 +20,4 @@ PASSWORD_RESET_EMAIL_SENT = "If an account exists with this email, you will rece
 PASSWORD_RESET_SUCCESS = "Password has been reset successfully."
 INVALID_RESET_TOKEN = "Invalid or expired reset token."
 
-# User
-USERS_FETCHED = "Users fetched successfully."
+
