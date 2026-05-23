@@ -23,6 +23,7 @@ def create_user(
     password_hash: Optional[str] = None,
     image: Optional[str] = None,
     email_verified: bool = False,
+    role: Optional[str] = None,
 ) -> User:
     user = User(
         id=uuid.uuid4(),
@@ -31,6 +32,7 @@ def create_user(
         password=password_hash,
         image=image,
         email_verified=email_verified,
+        role=role,
     )
     db.add(user)
     db.commit()

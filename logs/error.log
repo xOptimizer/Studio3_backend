@@ -5,3 +5,6 @@
 2026-02-21 21:30:07,379 - run - ERROR - Redis connection failed. Check REDIS_URL.
 2026-02-21 21:31:04,132 - run - ERROR - Redis connection failed. Check REDIS_URL.
 2026-02-21 21:31:52,597 - run - ERROR - Redis connection failed. Check REDIS_URL.
+2026-02-28 10:27:43,300 - redis - ERROR - Redis connection failed: Client IP address is not in the allowlist.
+2026-02-28 10:27:43,302 - run - ERROR - Redis connection failed. Check REDIS_URL.
+2026-05-24 01:47:03,204 - redis - ERROR - Redis connection failed: Client IP address is not in the allowlist.

@@ -22,6 +22,8 @@ class User(Base):
     password = Column(String(255), nullable=True)  # null for OAuth-only users
     image = Column(String(512), nullable=True)
     email_verified = Column(Boolean, default=False, nullable=False)
+    # Primary interest only (artist | collector | enthusiast). Set via onboarding. Does not restrict actions—e.g. artists can buy, collectors can post.
+    role = Column(String(32), nullable=True)
     created_at = Column(DateTime(timezone=True), nullable=False, default=utc_now)
     updated_at = Column(
         DateTime(timezone=True), nullable=False, default=utc_now, onupdate=utc_now

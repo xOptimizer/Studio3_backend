@@ -5,6 +5,7 @@ Python Flask backend with **PostgreSQL** (SQLAlchemy 2.0), **Alembic**, and **Re
 **Documentation:** See the [`docs/`](docs/) folder:
 - [**Project setup**](docs/README.md) – prerequisites, env, DB, Redis, run, troubleshooting
 - [**API reference**](docs/API.md) – endpoints, request/response format, auth
+- [**Activity-based roles**](docs/ACTIVITY_ROLES.md) – role-from-activity integration for post/purchase/save handlers, `flask recalc-roles`
 
 ## Stack
 
@@ -78,6 +79,8 @@ project_root/
   - `GET /google`, `GET /google/callback`
 - **User** (`/api/user`):
   - `GET /getall` – protected; `{ "users", "count" }`
+  - `GET /me`, `PATCH /me` – protected; profile and role (single or comma-separated; response role as array when multiple)
+- **CLI:** `FLASK_APP=src.app:create_app flask recalc-roles` – recalculate user roles from activity counts
 
 Responses: `{ "success": true, "message": "...", "data": ... }` or `{ "success": false, "message": "..." }`.
 

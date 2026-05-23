@@ -106,7 +106,7 @@ def _issue_session_and_tokens(user, request_obj=None):
             cookie_opts["secure"] = True
 
         return (
-            {"accessToken": access_token, "user": {"name": user.name, "email": user.email}},
+            {"accessToken": access_token, "user": {"name": user.name, "email": user.email, "role": user.role}},
             200,
             {"set_refresh_cookie": cookie_opts},
         )

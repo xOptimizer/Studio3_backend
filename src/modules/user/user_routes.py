@@ -15,3 +15,19 @@ def getall():
     data, status = user_controller.getall()
     resp, _ = success_response(USERS_FETCHED, data, status)
     return resp, status
+
+
+@user_bp.get("/me")
+@auth_required
+def get_me():
+    data, status = user_controller.get_me()
+    resp, _ = success_response("Profile fetched.", data, status)
+    return resp, status
+
+
+@user_bp.patch("/me")
+@auth_required
+def update_me():
+    data, status = user_controller.update_me()
+    resp, _ = success_response("Profile updated.", data, status)
+    return resp, status

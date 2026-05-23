@@ -117,6 +117,7 @@ def get_or_create_user_from_google(db: Session, payload: dict, id_token_raw: str
             password_hash=None,
             image=picture,
             email_verified=payload.get("email_verified", True),
+            role=None,
         )
     account = create_account(
         db,

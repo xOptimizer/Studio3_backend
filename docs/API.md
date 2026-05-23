@@ -4,6 +4,16 @@ For the Flask backend. Use this doc to build and test requests in Postman and to
 
 ---
 
+## User roles (overview)
+
+- **Role values:** `artist`, `collector`, `enthusiast`. A user can have one or more roles (e.g. both artist and collector).
+- **Onboarding:** After first signup or login, the frontend shows an onboarding screen; the user chooses role(s) and the frontend calls **PATCH /api/user/me** with `role`. Until then, `data.user.role` is `null`.
+- **Activity-based updates:** Role(s) can later be updated automatically from platform activity (posting/selling, buying, saving). See [Activity-based roles](ACTIVITY_ROLES.md).
+- **Primary interest only:** Role is not used for permission checks. Artists can purchase; collectors can post.
+- **Response shape:** In GET /me, getall, and PATCH /me responses, `role` is returned as a **string** when single (e.g. `"artist"`) or as an **array** when multiple (e.g. `["artist", "collector"]`). Auth responses (login/register/refresh) return `user.role` as stored (string, possibly comma-separated).
+
+---
+
 ## Postman setup
 
 ### 1. Environment variables
@@ -185,13 +195,14 @@ Response same as OTP generate. Possible `429` if rate/resend limit exceeded.
     "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
     "user": {
       "name": "John Doe",
-      "email": "user@example.com"
+      "email": "user@example.com",
+      "role": null
     }
   }
 }
 ```
 
-Use **Tests** script from “Saving the access token” to set `accessToken`. Errors: `400` (validation / invalid OTP), `409` (email already exists).
+`data.user.role` is `null` until onboarding (see **PATCH /api/user/me**). Use **Tests** script from “Saving the access token” to set `accessToken`. Errors: `400` (validation / invalid OTP), `409` (email already exists).
 
 ---
 
@@ -223,13 +234,14 @@ Use **Tests** script from “Saving the access token” to set `accessToken`. Er
     "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
     "user": {
       "name": "John Doe",
-      "email": "user@example.com"
+      "email": "user@example.com",
+      "role": null
     }
   }
 }
 ```
 
-Use **Tests** script to set `accessToken`. Errors: `400` (missing fields), `401` (invalid credentials).
+`data.user.role` is `null` until the user completes onboarding (see **PATCH /api/user/me**). Use **Tests** script to set `accessToken`. Errors: `400` (missing fields), `401` (invalid credentials).
 
 ---
 
@@ -254,7 +266,7 @@ Postman sends the `refreshToken` cookie automatically if it was set by Login/Reg
   "message": "Token refreshed.",
   "data": {
     "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    "user": { "name": "John Doe", "email": "user@example.com" }
+    "user": { "name": "John Doe", "email": "user@example.com", "role": null }
   }
 }
 ```
@@ -407,6 +419,7 @@ Error: `400` if token invalid/expired or `newPassword` missing.
         "name": "John Doe",
         "image": null,
         "email_verified": true,
+        "role": null,
         "created_at": "2025-02-20T12:00:00+00:00"
       }
     ],
@@ -415,7 +428,81 @@ Error: `400` if token invalid/expired or `newPassword` missing.
 }
 ```
 
+**`role`:** String when single (e.g. `"artist"`), array when multiple (e.g. `["artist", "collector"]`), or `null` until set via onboarding or activity.
+
 Error: `401` if token missing/invalid or session expired.
+
+---
+
+### User – Get current user (me)
+
+**GET** `{{baseUrl}}/api/user/me`
+
+| | |
+|--|--|
+| **Method** | `GET` |
+| **URL** | `{{baseUrl}}/api/user/me` |
+| **Headers** | `Authorization: Bearer {{accessToken}}` |
+| **Body** | *(none)* |
+
+Returns the current user's profile. Use this to check `role` (e.g. if `null`, show onboarding). **`role`** is a string when single, an array when multiple (e.g. `["artist", "collector"]`), or `null`.
+
+**Example response (200):**
+
+```json
+{
+  "success": true,
+  "message": "Profile fetched.",
+  "data": {
+    "id": "uuid",
+    "email": "user@example.com",
+    "name": "John Doe",
+    "image": null,
+    "email_verified": true,
+    "role": null,
+    "created_at": "2025-02-22T..."
+  }
+}
+```
+
+Error: `401` if not authenticated; `404` if user not found.
+
+---
+
+### User – Update current user (set role / onboarding)
+
+**PATCH** `{{baseUrl}}/api/user/me`
+
+| | |
+|--|--|
+| **Method** | `PATCH` |
+| **URL** | `{{baseUrl}}/api/user/me` |
+| **Headers** | `Content-Type: application/json`, `Authorization: Bearer {{accessToken}}` |
+| **Body** | raw JSON |
+
+Set or update the current user's role (used after onboarding or for the artist/collector toggle). **Body:** `role` is a string—either a single value or comma-separated for multiple (e.g. `"artist"` or `"artist,collector"`). Allowed values: `artist`, `collector`, `enthusiast`.
+
+**Note:** Role indicates the user's *primary* interest. It is not used for permission checks—e.g. artists can purchase, collectors can post.
+
+**Single role:**
+
+```json
+{
+  "role": "artist"
+}
+```
+
+**Multiple roles (comma-separated):**
+
+```json
+{
+  "role": "artist,collector"
+}
+```
+
+**Example response (200):** Returns updated profile (same shape as GET /api/user/me). The `role` field is a string when single, an array when multiple (e.g. `["artist", "collector"]`).
+
+Error: `400` if `role` missing or contains invalid value(s); `401` if not authenticated.
 
 ---
 
@@ -436,5 +523,7 @@ Error: `401` if token missing/invalid or session expired.
 | GET | `{{baseUrl}}/api/auth/google` | — | Browser redirect |
 | GET | `{{baseUrl}}/api/auth/google/callback` | — | OAuth callback |
 | GET | `{{baseUrl}}/api/user/getall` | Bearer | — |
+| GET | `{{baseUrl}}/api/user/me` | Bearer | — |
+| PATCH | `{{baseUrl}}/api/user/me` | Bearer | `{ "role": "artist" \| "collector" \| "enthusiast" \| "artist,collector" }` |
 
 **Auth column:** “Bearer” = `Authorization: Bearer {{accessToken}}`; “Cookie” = send cookies (Postman does this automatically after login/register/refresh).
