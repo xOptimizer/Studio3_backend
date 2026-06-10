@@ -8,7 +8,9 @@ from sqlalchemy.orm import DeclarativeBase, sessionmaker, Session
 
 
 def _sanitize_database_url(url: str) -> str:
-    """Remove query params that psycopg2 does not accept (e.g. pgbouncer=true from Supabase)."""
+    """Normalize URL for psycopg2 (postgres:// → postgresql://, strip pgbouncer param)."""
+    if url.startswith("postgres://"):
+        url = "postgresql://" + url[len("postgres://"):]
     parsed = urlparse(url)
     if not parsed.query:
         return url

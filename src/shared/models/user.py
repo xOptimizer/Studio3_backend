@@ -2,8 +2,8 @@
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import Column, DateTime, String, Boolean
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Column, DateTime, String, Boolean, Text
+from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
 
 from src.shared.config.database import Base
@@ -17,13 +17,20 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    username = Column(String(30), unique=True, nullable=False, index=True)
     email = Column(String(255), unique=True, nullable=False, index=True)
-    name = Column(String(255), nullable=True)
+    name = Column(String(255), nullable=False)
     password = Column(String(255), nullable=True)  # null for OAuth-only users
     image = Column(String(512), nullable=True)
+    cover_photo_url = Column(String(512), nullable=True)
+    bio = Column(Text, nullable=True)
+    location = Column(String(255), nullable=True)
     email_verified = Column(Boolean, default=False, nullable=False)
-    # Primary interest only (artist | collector | enthusiast). Set via onboarding. Does not restrict actions—e.g. artists can buy, collectors can post.
     role = Column(String(32), nullable=True)
+    seller_enabled = Column(Boolean, default=False, nullable=False)
+    onboarding_complete = Column(Boolean, default=False, nullable=False)
+    taste_preferences = Column(JSONB, nullable=True)  # {mediums, styles, themes}
+    last_username_change_at = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), nullable=False, default=utc_now)
     updated_at = Column(
         DateTime(timezone=True), nullable=False, default=utc_now, onupdate=utc_now
@@ -36,4 +43,7 @@ class User(Base):
     )
     password_reset_tokens = relationship(
         "PasswordResetToken", back_populates="user", cascade="all, delete-orphan"
+    )
+    username_history = relationship(
+        "UsernameHistory", backref="user", cascade="all, delete-orphan"
     )

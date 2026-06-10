@@ -1,0 +1,45 @@
+"""Pieces routes."""
+from flask import Blueprint
+
+from src.middlewares.auth_middleware import onboarding_required
+from src.shared.utils.api_response import success_response
+from src.shared.utils.async_handler import async_handler
+from src.modules.pieces import pieces_controller
+
+pieces_bp = Blueprint("pieces", __name__)
+
+
+def _ok(message, data, status=200):
+    resp, _ = success_response(message, data, status)
+    return resp, status
+
+
+@pieces_bp.post("")
+@onboarding_required
+@async_handler
+def create_piece():
+    data, status = pieces_controller.create()
+    return _ok("Piece created.", data, status)
+
+
+@pieces_bp.get("/<piece_id>")
+@async_handler
+def get_piece(piece_id):
+    data, status = pieces_controller.get_detail(piece_id)
+    return _ok("OK", data, status)
+
+
+@pieces_bp.patch("/<piece_id>")
+@onboarding_required
+@async_handler
+def patch_piece(piece_id):
+    data, status = pieces_controller.patch(piece_id)
+    return _ok("Piece updated.", data, status)
+
+
+@pieces_bp.get("/<piece_id>/related-posts")
+@async_handler
+def related_posts(piece_id):
+    from src.modules.posts import posts_controller
+    data, status = posts_controller.related_for_piece(piece_id)
+    return _ok("OK", data, status)

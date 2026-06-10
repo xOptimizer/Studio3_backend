@@ -1,4 +1,4 @@
-"""Auth-related DB access: users (by email, create), accounts, password_reset_tokens."""
+"""Auth-related DB access."""
 import uuid
 from datetime import datetime, timezone
 from typing import Optional
@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from src.shared.models.user import User
 from src.shared.models.account import Account
 from src.shared.models.password_reset_token import PasswordResetToken
+from src.shared.models.username_history import UsernameHistory
 
 
 def find_user_by_email(db: Session, email: str) -> Optional[User]:
@@ -16,10 +17,35 @@ def find_user_by_email(db: Session, email: str) -> Optional[User]:
     return result.scalar_one_or_none()
 
 
+def find_user_by_username(db: Session, username: str) -> Optional[User]:
+    result = db.execute(select(User).where(User.username == username))
+    return result.scalar_one_or_none()
+
+
+def find_user_by_username_or_history(db: Session, username: str) -> tuple[Optional[User], bool]:
+    """Resolve user by current username or active history entry. Returns (user, is_redirect)."""
+    user = find_user_by_username(db, username)
+    if user:
+        return user, False
+
+    now = datetime.now(timezone.utc)
+    hist = db.execute(
+        select(UsernameHistory).where(
+            UsernameHistory.username == username,
+            UsernameHistory.reserved_until > now,
+        )
+    ).scalar_one_or_none()
+    if hist:
+        user = db.get(User, hist.user_id)
+        return user, True
+    return None, False
+
+
 def create_user(
     db: Session,
+    username: str,
     email: str,
-    name: Optional[str] = None,
+    name: str,
     password_hash: Optional[str] = None,
     image: Optional[str] = None,
     email_verified: bool = False,
@@ -27,6 +53,7 @@ def create_user(
 ) -> User:
     user = User(
         id=uuid.uuid4(),
+        username=username,
         email=email,
         name=name,
         password=password_hash,

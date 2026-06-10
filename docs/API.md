@@ -156,6 +156,37 @@ Response same as OTP generate. Possible `429` if rate/resend limit exceeded.
 
 ---
 
+### Auth – Username check
+
+**GET** `{{baseUrl}}/api/auth/username/check?username=maya_art&for_user_id=me`
+
+| | |
+|--|--|
+| **Method** | `GET` |
+| **URL** | `{{baseUrl}}/api/auth/username/check` |
+| **Query** | `username` (required); `for_user_id=me` (optional, requires Bearer token to exclude current user when changing username) |
+| **Headers** | Optional: `Authorization: Bearer {{accessToken}}` when using `for_user_id=me` |
+
+**Example response (200):**
+
+```json
+{
+  "success": true,
+  "message": "OK",
+  "data": {
+    "available": true,
+    "normalized": "maya_art",
+    "reason": null,
+    "message": "Username is available.",
+    "suggestions": []
+  }
+}
+```
+
+When taken, `available` is `false`, `reason` is `"taken"` or `"reserved"`, and `suggestions` may include alternatives.
+
+---
+
 ### Auth – Register
 
 **POST** `{{baseUrl}}/api/auth/register`
@@ -169,6 +200,7 @@ Response same as OTP generate. Possible `429` if rate/resend limit exceeded.
 
 ```json
 {
+  "username": "maya_art",
   "name": "John Doe",
   "email": "user@example.com",
   "password": "securePassword123",
@@ -185,15 +217,18 @@ Response same as OTP generate. Possible `429` if rate/resend limit exceeded.
   "data": {
     "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
     "user": {
+      "username": "maya_art",
       "name": "John Doe",
       "email": "user@example.com",
+      "emailVerified": true,
+      "onboardingComplete": false,
       "role": null
     }
   }
 }
 ```
 
-`data.user.role` is `null` until onboarding (see **PATCH /api/user/me**). Use **Tests** script from “Saving the access token” to set `accessToken`. Errors: `400` (validation / invalid OTP), `409` (email already exists).
+Use **Tests** script from “Saving the access token” to set `accessToken`. Errors: `400` (validation / invalid OTP), `409` (username or email taken).
 
 ---
 
@@ -210,29 +245,14 @@ Response same as OTP generate. Possible `429` if rate/resend limit exceeded.
 
 ```json
 {
-  "email": "user@example.com",
+  "username": "maya_art",
   "password": "securePassword123"
 }
 ```
 
 **Example response (200):** Same shape as Register; server sets cookie `refreshToken`.
 
-```json
-{
-  "success": true,
-  "message": "Login successful.",
-  "data": {
-    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    "user": {
-      "name": "John Doe",
-      "email": "user@example.com",
-      "role": null
-    }
-  }
-}
-```
-
-`data.user.role` is `null` until the user completes onboarding (see **PATCH /api/user/me**). Use **Tests** script to set `accessToken`. Errors: `400` (missing fields), `401` (invalid credentials).
+Errors: `400` (missing fields), `401` (invalid credentials).
 
 ---
 
@@ -385,17 +405,147 @@ Error: `400` if token invalid/expired or `newPassword` missing.
 
 ---
 
+## User & profile
 
+### User – Get me (protected)
+
+**GET** `{{baseUrl}}/api/user/me` — Bearer required. Returns full profile including `username`, `canChangeUsername`, `tastePreferences`, seller status.
+
+### User – Update me (protected)
+
+**PATCH** `{{baseUrl}}/api/user/me` — Body: `{ "name"?, "bio"?, "location"?, "profilePhotoUrl"?, "coverPhotoUrl"? }`
+
+### User – Change username (protected)
+
+**PATCH** `{{baseUrl}}/api/user/me/username` — Body: `{ "username": "new_handle" }`. 30-day cooldown between changes.
+
+### User – Public profile
+
+**GET** `{{baseUrl}}/api/user/:username` — Public profile by handle. Old reserved usernames return `redirectToUsername`.
+
+### User – Onboarding (protected)
+
+| Method | URL | Body |
+|--------|-----|------|
+| PATCH | `/api/user/me/role` | `{ "role": "artist" \| "collector" \| "enthusiast" }` |
+| POST | `/api/user/me/onboarding/preferences` | `{ "mediums": [], "styles": [], "themes": [] }` (3+ each) |
+| POST | `/api/user/me/onboarding/photos` | `{ "profilePhotoUrl"?, "coverPhotoUrl"? }` or `{ "skip": true }` |
+| POST | `/api/user/me/onboarding/complete` | — |
+
+### User – Seller mode (protected)
+
+| Method | URL | Body |
+|--------|-----|------|
+| POST | `/api/user/me/seller/enable` | `{ "location": "...", "useProfileLocation"?: true }` |
+| POST | `/api/user/me/seller/disable` | — (auto-delist for-sale pieces) |
+| GET | `/api/user/me/seller` | — |
+
+---
+
+## Media
+
+### Media – Presign upload (protected)
+
+**POST** `{{baseUrl}}/api/media/presign`
+
+```json
+{
+  "purpose": "profile",
+  "contentType": "image/jpeg",
+  "pieceId": "optional-uuid-for-piece",
+  "postId": "optional-uuid-for-post"
+}
+```
+
+`purpose`: `profile` | `cover` | `piece` | `post`
+
+**Response:** `{ "presignedPutUrl", "url", "key", "devMode" }` — upload to `presignedPutUrl`, then pass `url` when creating/updating content.
+
+---
+
+## Pieces & posts
+
+Content routes require completed onboarding (`onboardingComplete: true`).
+
+### Pieces
+
+| Method | URL | Auth | Notes |
+|--------|-----|------|-------|
+| POST | `/api/pieces` | Bearer | Create piece; sale fields require seller mode |
+| GET | `/api/pieces/:id` | — | Detail |
+| PATCH | `/api/pieces/:id` | Bearer | Edit, toggle sale |
+| GET | `/api/pieces/:id/related-posts` | — | Process posts linked to piece |
+| GET | `/api/users/:username/pieces` | — | Profile Work tab |
+| GET | `/api/users/:username/pieces/for-sale` | — | For Sale tab |
+
+**Create piece body (example):**
+
+```json
+{
+  "title": "Sunset Study",
+  "mediaUrl": "https://bucket.s3.amazonaws.com/maya_art/pieces/abc.jpg",
+  "mediaType": "image",
+  "caption": "Oil on canvas",
+  "medium": "painting",
+  "isForSale": true,
+  "priceCents": 25000,
+  "dimensions": "24x36 in",
+  "shippingRegion": "US"
+}
+```
+
+### Posts
+
+| Method | URL | Auth | Notes |
+|--------|-----|------|-------|
+| POST | `/api/posts` | Bearer | WIP/process only — no sale fields |
+| GET | `/api/posts/:id` | — | Detail |
+| PATCH | `/api/posts/:id` | Bearer | Edit, link/unlink piece |
+| GET | `/api/users/:username/posts` | — | Profile Process tab |
+
+---
+
+## Social
+
+All social mutation routes require Bearer + completed onboarding.
+
+| Method | URL | Description |
+|--------|-----|-------------|
+| POST | `/api/users/:username/follow` | Follow user |
+| DELETE | `/api/users/:username/follow` | Unfollow |
+| POST | `/api/pieces/:id/like` | Like piece |
+| DELETE | `/api/pieces/:id/like` | Unlike piece |
+| POST | `/api/posts/:id/like` | Like post |
+| DELETE | `/api/posts/:id/like` | Unlike post |
+| POST | `/api/pieces/:id/save` | Save piece |
+| DELETE | `/api/pieces/:id/save` | Unsave piece |
+| POST | `/api/posts/:id/save` | Save post |
+| DELETE | `/api/posts/:id/save` | Unsave post |
+| POST | `/api/pieces/:id/comments` | Body: `{ "body": "..." }` |
+| POST | `/api/posts/:id/comments` | Body: `{ "body": "..." }` |
+
+---
+
+## Feeds
+
+| Method | URL | Auth | Description |
+|--------|-----|------|-------------|
+| GET | `/api/feed/following` | Bearer + onboarding | Chronological pieces + posts from followed users |
+| GET | `/api/feed/explore` | — | Recent public pieces; `?medium=painting` filter |
+| GET | `/api/feed/for-you` | Bearer + onboarding | Stub: blends explore (full engine deferred) |
+
+---
 
 ## Quick reference
 
 | Method | URL | Auth | Body |
 |--------|-----|------|------|
 | GET | `{{baseUrl}}/` | — | — |
+| GET | `{{baseUrl}}/api/auth/username/check` | Optional | Query: `username`, `for_user_id=me` |
 | POST | `{{baseUrl}}/api/auth/otp/generate` | — | `{ "email" }` |
 | POST | `{{baseUrl}}/api/auth/otp/resend` | — | `{ "email" }` |
-| POST | `{{baseUrl}}/api/auth/register` | — | `{ "name", "email", "password", "otp" }` |
-| POST | `{{baseUrl}}/api/auth/login` | — | `{ "email", "password" }` |
+| POST | `{{baseUrl}}/api/auth/register` | — | `{ "username", "name", "email", "password", "otp" }` |
+| POST | `{{baseUrl}}/api/auth/login` | — | `{ "username", "password" }` |
 | POST | `{{baseUrl}}/api/auth/refresh` | Cookie | — |
 | POST | `{{baseUrl}}/api/auth/logout` | Cookie | — |
 | POST | `{{baseUrl}}/api/auth/logout-all` | Bearer | — |
@@ -403,6 +553,22 @@ Error: `400` if token invalid/expired or `newPassword` missing.
 | POST | `{{baseUrl}}/api/auth/reset-password` | — | `{ "token", "newPassword" }` |
 | GET | `{{baseUrl}}/api/auth/google` | — | Browser redirect |
 | GET | `{{baseUrl}}/api/auth/google/callback` | — | OAuth callback |
+| GET | `{{baseUrl}}/api/user/me` | Bearer | — |
+| PATCH | `{{baseUrl}}/api/user/me` | Bearer | Profile fields |
+| PATCH | `{{baseUrl}}/api/user/me/username` | Bearer | `{ "username" }` |
+| GET | `{{baseUrl}}/api/user/:username` | — | — |
+| PATCH | `{{baseUrl}}/api/user/me/role` | Bearer | `{ "role" }` |
+| POST | `{{baseUrl}}/api/user/me/onboarding/*` | Bearer | See above |
+| POST | `{{baseUrl}}/api/user/me/seller/*` | Bearer | See above |
+| POST | `{{baseUrl}}/api/media/presign` | Bearer | `{ "purpose", "contentType" }` |
+| POST/PATCH/GET | `{{baseUrl}}/api/pieces/*` | Varies | See above |
+| POST/PATCH/GET | `{{baseUrl}}/api/posts/*` | Varies | See above |
+| GET | `{{baseUrl}}/api/users/:username/pieces` | — | — |
+| GET | `{{baseUrl}}/api/users/:username/posts` | — | — |
+| POST/DELETE | `{{baseUrl}}/api/users/:username/follow` | Bearer | — |
+| POST/DELETE | `{{baseUrl}}/api/pieces/:id/like` | Bearer | — |
+| GET | `{{baseUrl}}/api/feed/following` | Bearer | — |
+| GET | `{{baseUrl}}/api/feed/explore` | — | — |
 
 
 **Auth column:** “Bearer” = `Authorization: Bearer {{accessToken}}`; “Cookie” = send cookies (Postman does this automatically after login/register/refresh).

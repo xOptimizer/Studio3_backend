@@ -5,32 +5,31 @@ import secrets
 import bcrypt
 from datetime import datetime, timezone, timedelta
 from flask import request, g
-from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 
 from src.shared.config.database import SessionLocal
 from src.shared.utils.app_error import AppError
 from src.shared.utils.messages import (
-    OTP_SENT,
     OTP_VERIFICATION_FAILED,
     EMAIL_REQUIRED,
+    USERNAME_REQUIRED,
+    NAME_REQUIRED,
+    PASSWORD_REQUIRED,
     INVALID_CREDENTIALS,
     USER_ALREADY_EXISTS,
-    LOGIN_SUCCESS,
     LOGOUT_SUCCESS,
     LOGOUT_ALL_SUCCESS,
-    REFRESH_SUCCESS,
-    PASSWORD_RESET_EMAIL_SENT,
-    PASSWORD_RESET_SUCCESS,
     INVALID_RESET_TOKEN,
     UNAUTHORIZED,
 )
 from src.shared.utils.jwt_utils import sign_access_token
+from src.shared.utils.rate_limit import rate_limit_ip
+from src.shared.username.constants import RATE_CHECK_PER_IP, RATE_REGISTER_PER_IP
+from src.shared.username.normalize import normalize
+from src.shared.username.availability import check_availability, invalidate_username_cache
 from src.shared.notification.email_service import send_email
 from src.shared.templates.otp_template import get_otp_html
-from src.modules.auth.auth_dao import (
-    find_user_by_email,
-    create_user,
-)
+from src.modules.auth.auth_dao import find_user_by_email, find_user_by_username, create_user
 from src.modules.auth.services.otp_service import (
     acquire_lock,
     check_resend_limit,
@@ -61,10 +60,12 @@ from src.modules.auth.google_oauth_service import (
     consume_state,
     build_redirect_with_token,
 )
+from src.modules.user.user_serializers import user_to_dict
 
 SALT_ROUNDS = int(os.getenv("SALT_ROUNDS", "10"))
 REFRESH_TOKEN_DAYS = 7
 COOKIE_MAX_AGE = 7 * 24 * 3600
+MIN_PASSWORD_LEN = 8
 
 
 def _hash_password(password: str) -> str:
@@ -80,7 +81,6 @@ def _hash_refresh_secret(secret: str) -> str:
 
 
 def _issue_session_and_tokens(user, request_obj=None):
-    """Create Redis session, refresh token row; return (data, status, cookie_ops). Cookie = id.secret."""
     db = SessionLocal()
     try:
         user_id = str(user.id)
@@ -106,7 +106,7 @@ def _issue_session_and_tokens(user, request_obj=None):
             cookie_opts["secure"] = True
 
         return (
-            {"accessToken": access_token, "user": {"name": user.name, "email": user.email, "role": user.role}},
+            {"accessToken": access_token, "user": user_to_dict(user)},
             200,
             {"set_refresh_cookie": cookie_opts},
         )
@@ -114,10 +114,30 @@ def _issue_session_and_tokens(user, request_obj=None):
         db.close()
 
 
-# ---- OTP ----
+def username_check():
+    rate_limit_ip("username_check", RATE_CHECK_PER_IP, 60)
+    raw = (request.args.get("username") or "").strip()
+    for_user_id = None
+    if request.args.get("for_user_id") == "me" and hasattr(g, "user") and g.user:
+        for_user_id = uuid.UUID(g.user["id"])
+
+    db = SessionLocal()
+    try:
+        result = check_availability(db, raw, exclude_user_id=for_user_id, include_suggestions=True)
+        return {
+            "available": result.available,
+            "normalized": result.normalized,
+            "reason": result.reason,
+            "message": result.message,
+            "suggestions": result.suggestions,
+        }, 200, None
+    finally:
+        db.close()
+
+
 def otp_generate():
     body = request.get_json() or {}
-    email = (body.get("email") or "").strip()
+    email = (body.get("email") or "").strip().lower()
     if not email:
         raise AppError(EMAIL_REQUIRED, 400)
     if not acquire_lock(email):
@@ -127,52 +147,86 @@ def otp_generate():
     otp = generate_otp(6)
     store_otp(email, otp)
     send_email(email, "Your verification code", get_otp_html(otp))
-    return {"message": OTP_SENT}, 200, None
+    return {"message": "OTP sent successfully."}, 200, None
 
 
 def otp_resend():
     return otp_generate()
 
 
-# ---- Register ----
 def register():
+    rate_limit_ip("register", RATE_REGISTER_PER_IP, 60)
     body = request.get_json() or {}
+    username_raw = (body.get("username") or "").strip()
     name = (body.get("name") or "").strip()
     email = (body.get("email") or "").strip().lower()
     password = body.get("password")
     otp = (body.get("otp") or "").strip()
+
+    if not username_raw:
+        raise AppError(USERNAME_REQUIRED, 400)
+    if not name:
+        raise AppError(NAME_REQUIRED, 400)
     if not email:
         raise AppError(EMAIL_REQUIRED, 400)
-    if not password:
-        raise AppError("Password is required.", 400)
+    if not password or len(password) < MIN_PASSWORD_LEN:
+        raise AppError(PASSWORD_REQUIRED if not password else "Password must be at least 8 characters.", 400)
     if not otp:
         raise AppError(OTP_VERIFICATION_FAILED, 400)
     if not verify_otp(email, otp):
         raise AppError(OTP_VERIFICATION_FAILED, 400)
+
+    norm = normalize(username_raw)
+    if not norm.ok or not norm.normalized:
+        raise AppError("Invalid username format.", 400)
+
     db = SessionLocal()
     try:
         if find_user_by_email(db, email):
             raise AppError(USER_ALREADY_EXISTS, 409)
-        user = create_user(
-            db, email=email, name=name or None, password_hash=_hash_password(password), email_verified=True
-        )
+
+        avail = check_availability(db, norm.normalized, include_suggestions=True)
+        if not avail.available:
+            msg = avail.message
+            if avail.suggestions:
+                msg += f" Try: {', '.join(avail.suggestions[:3])}"
+            raise AppError(msg, 409)
+
+        try:
+            user = create_user(
+                db,
+                username=norm.normalized,
+                email=email,
+                name=name,
+                password_hash=_hash_password(password),
+                email_verified=True,
+            )
+        except IntegrityError:
+            db.rollback()
+            raise AppError("Username or email was just taken. Try another.", 409)
+
+        invalidate_username_cache(norm.normalized)
         return _issue_session_and_tokens(user, request)
     finally:
         db.close()
 
 
-# ---- Login ----
 def login():
     body = request.get_json() or {}
-    email = (body.get("email") or "").strip().lower()
+    username_raw = (body.get("username") or "").strip()
     password = body.get("password")
-    if not email:
-        raise AppError(EMAIL_REQUIRED, 400)
+    if not username_raw:
+        raise AppError(USERNAME_REQUIRED, 400)
     if not password:
-        raise AppError("Password is required.", 400)
+        raise AppError(PASSWORD_REQUIRED, 400)
+
+    norm = normalize(username_raw)
+    if not norm.ok or not norm.normalized:
+        raise AppError(INVALID_CREDENTIALS, 401)
+
     db = SessionLocal()
     try:
-        user = find_user_by_email(db, email)
+        user = find_user_by_username(db, norm.normalized)
         if not user or not user.password:
             raise AppError(INVALID_CREDENTIALS, 401)
         if not _verify_password(password, user.password):
@@ -182,7 +236,6 @@ def login():
         db.close()
 
 
-# ---- Refresh (rotate: revoke old, create new token + cookie) ----
 def refresh():
     cookie = request.cookies.get("refreshToken")
     if not cookie or "." not in cookie:
@@ -213,7 +266,6 @@ def refresh():
         db.close()
 
 
-# ---- Logout ----
 def logout():
     cookie = request.cookies.get("refreshToken")
     if cookie and "." in cookie:
@@ -234,7 +286,6 @@ def logout():
     return {"message": LOGOUT_SUCCESS}, 200, {"clear_refresh_cookie": True}
 
 
-# ---- Logout all (protected) ----
 def logout_all():
     user_id = g.user.get("id")
     if not user_id:
@@ -252,7 +303,6 @@ def logout_all():
     return {"message": LOGOUT_ALL_SUCCESS}, 200, {"clear_refresh_cookie": True}
 
 
-# ---- Forget / Reset password ----
 def forget_password():
     body = request.get_json() or {}
     email = (body.get("email") or "").strip().lower()
@@ -263,7 +313,7 @@ def forget_password():
         request_password_reset(db, email)
     finally:
         db.close()
-    return {"message": PASSWORD_RESET_EMAIL_SENT}, 200, None
+    return {"message": "If an account exists with this email, you will receive a password reset link."}, 200, None
 
 
 def reset_password():
@@ -272,8 +322,8 @@ def reset_password():
     new_password = body.get("newPassword")
     if not token:
         raise AppError(INVALID_RESET_TOKEN, 400)
-    if not new_password:
-        raise AppError("New password is required.", 400)
+    if not new_password or len(new_password) < MIN_PASSWORD_LEN:
+        raise AppError("New password must be at least 8 characters.", 400)
     db = SessionLocal()
     try:
         ok = do_reset_password(db, token, _hash_password(new_password))
@@ -281,14 +331,12 @@ def reset_password():
         db.close()
     if not ok:
         raise AppError(INVALID_RESET_TOKEN, 400)
-    return {"message": PASSWORD_RESET_SUCCESS}, 200, None
+    return {"message": "Password has been reset successfully."}, 200, None
 
 
-# ---- Google OAuth ----
 def google_redirect():
-    url = get_google_auth_url()
     from flask import redirect
-    return redirect(url)
+    return redirect(get_google_auth_url())
 
 
 def google_callback():

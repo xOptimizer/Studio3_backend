@@ -15,6 +15,7 @@ from src.modules.auth.auth_dao import (
     create_user,
     create_account,
 )
+from src.shared.username.allocate import allocate_username
 
 OAUTH_STATE_TTL = 60 * 5  # 5 min
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
@@ -110,10 +111,13 @@ def get_or_create_user_from_google(db: Session, payload: dict, id_token_raw: str
 
     user = find_user_by_email(db, email)
     if not user:
+        base = (email.split("@")[0] if email else name or "user").replace(".", "_")[:20]
+        username = allocate_username(db, base)
         user = create_user(
             db,
+            username=username,
             email=email,
-            name=name,
+            name=name or username,
             password_hash=None,
             image=picture,
             email_verified=payload.get("email_verified", True),

@@ -1,0 +1,16 @@
+"""Username length and validation constants (Instagram-aligned)."""
+
+MIN_LEN = 1
+RECOMMENDED_MIN = 3
+MAX_LEN = 30
+USERNAME_CHANGE_COOLDOWN_DAYS = 30
+
+CHARSET_REGEX = r"^[a-z0-9._]+$"
+
+CACHE_TTL_SECONDS = 60
+CACHE_KEY_PREFIX = "uname:avail:"
+
+RATE_CHECK_PER_IP = 60
+RATE_CHECK_PER_USER = 30
+RATE_REGISTER_PER_IP = 5
+RATE_USERNAME_CHANGE_PER_USER = 3

@@ -23,10 +23,9 @@ htmlcov/
 .DS_Store
 Thumbs.db
 
+# Logs
+logs/
 
-# mtime-based, breaks after git clone
-graphify-out/manifest.json
-# local only
-graphify-out/cost.json
-# optional: commit for speed, skip to keep repo small
-graphify-out/cache/
+# graphify output (local only — do not push)
+graphify-out/
+.agents/

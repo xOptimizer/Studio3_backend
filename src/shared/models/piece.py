@@ -1,0 +1,37 @@
+"""Piece (finished art) model."""
+import uuid
+from datetime import datetime, timezone
+
+from sqlalchemy import Column, DateTime, String, Boolean, Integer, Text, ForeignKey
+from sqlalchemy.dialects.postgresql import UUID, JSONB, ARRAY
+
+from src.shared.config.database import Base
+
+
+def utc_now():
+    return datetime.now(timezone.utc)
+
+
+class Piece(Base):
+    __tablename__ = "pieces"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    title = Column(String(200), nullable=False)
+    media_url = Column(String(1024), nullable=False)
+    media_type = Column(String(32), nullable=False)  # image | video
+    caption = Column(Text, nullable=True)
+    medium = Column(String(100), nullable=True)
+    materials = Column(ARRAY(String), nullable=True)
+    style_tags = Column(ARRAY(String), nullable=True)
+    ai_disclosed = Column(Boolean, default=False, nullable=False)
+    alt_text = Column(Text, nullable=True)
+    is_for_sale = Column(Boolean, default=False, nullable=False)
+    price_cents = Column(Integer, nullable=True)
+    currency = Column(String(3), default="USD", nullable=False)
+    dimensions = Column(JSONB, nullable=True)
+    shipping_region = Column(String(64), nullable=True)
+    status = Column(String(32), default="live", nullable=False)  # draft|live|sold|delisted
+    deleted_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), nullable=False, default=utc_now)
+    updated_at = Column(DateTime(timezone=True), nullable=False, default=utc_now, onupdate=utc_now)

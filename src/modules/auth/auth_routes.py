@@ -11,7 +11,7 @@ from src.shared.utils.messages import (
     PASSWORD_RESET_EMAIL_SENT,
     PASSWORD_RESET_SUCCESS,
 )
-from src.middlewares.auth_middleware import auth_required
+from src.middlewares.auth_middleware import auth_required, optional_auth
 from src.modules.auth import auth_controller
 
 auth_bp = Blueprint("auth", __name__)
@@ -32,6 +32,13 @@ def _respond(message, data, status, cookie_ops):
     resp, _ = success_response(message, data, status)
     _apply_cookie_ops(resp, cookie_ops)
     return resp, status
+
+
+@auth_bp.get("/username/check")
+@optional_auth
+def username_check():
+    data, status, cookie_ops = auth_controller.username_check()
+    return _respond("OK", data, status, cookie_ops)
 
 
 @auth_bp.post("/otp/generate")

@@ -1,10 +1,31 @@
 {
   "info": {
     "_postman_id": "7f8b9e6a-1c5d-4f3b-8d2e-9c7b0a8e1d2f",
-    "name": "Virtual Instructor API",
-    "description": "Postman Collection for testing the Virtual Instructor Flask backend REST API.",
+    "name": "Studio 3 API",
+    "description": "Postman collection for the Studio 3 Flask backend (Phases 1–4). Import and set collection variables: baseUrl, accessToken, username, pieceId, postId.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
   "item": [
     {
       "name": "General",
@@ -12,20 +33,11 @@
         {
           "name": "Health Check",
           "request": {
+            "auth": { "type": "noauth" },
             "method": "GET",
             "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                ""
-              ]
-            },
-            "description": "Get the health status of the backend API."
-          },
-          "response": []
+            "url": "{{baseUrl}}/"
+          }
         }
       ]
     },
@@ -33,76 +45,48 @@
       "name": "Auth",
       "item": [
         {
-          "name": "OTP Generate",
+          "name": "Username Check",
           "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"user@example.com\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/auth/otp/generate",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "otp",
-                "generate"
+              "raw": "{{baseUrl}}/api/auth/username/check?username={{username}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "username", "check"],
+              "query": [
+                { "key": "username", "value": "{{username}}" },
+                { "key": "for_user_id", "value": "me", "disabled": true }
               ]
             },
-            "description": "Request a 6-digit verification code sent via email (or stored in Redis)."
-          },
-          "response": []
+            "description": "Check username availability. Enable for_user_id=me and add Bearer token when changing username."
+          }
+        },
+        {
+          "name": "OTP Generate",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/otp/generate"
+          }
         },
         {
           "name": "OTP Resend",
           "request": {
+            "auth": { "type": "noauth" },
             "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
-              }
-            ],
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"user@example.com\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\n  \"email\": \"user@example.com\"\n}"
             },
-            "url": {
-              "raw": "{{baseUrl}}/api/auth/otp/resend",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "otp",
-                "resend"
-              ]
-            },
-            "description": "Resend the 6-digit verification code to the email."
-          },
-          "response": []
+            "url": "{{baseUrl}}/api/auth/otp/resend"
+          }
         },
         {
           "name": "Register",
@@ -110,48 +94,29 @@
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
                   "var json = pm.response.json();",
                   "if (json.data && json.data.accessToken) {",
-                  "  pm.collectionVariables.set(\"accessToken\", json.data.accessToken);",
+                  "  pm.collectionVariables.set('accessToken', json.data.accessToken);",
+                  "}",
+                  "if (json.data && json.data.user && json.data.user.username) {",
+                  "  pm.collectionVariables.set('username', json.data.user.username);",
                   "}"
-                ],
-                "type": "text/javascript"
+                ]
               }
             }
           ],
           "request": {
+            "auth": { "type": "noauth" },
             "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
-              }
-            ],
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"user@example.com\",\n  \"password\": \"securePassword123\",\n  \"otp\": \"123456\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\n  \"username\": \"maya_art\",\n  \"name\": \"John Doe\",\n  \"email\": \"user@example.com\",\n  \"password\": \"securePassword123\",\n  \"otp\": \"123456\"\n}"
             },
-            "url": {
-              "raw": "{{baseUrl}}/api/auth/register",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "register"
-              ]
-            },
-            "description": "Register a new user with verified OTP. Automatically stores the accessToken in collection variables."
-          },
-          "response": []
+            "url": "{{baseUrl}}/api/auth/register"
+          }
         },
         {
           "name": "Login",
@@ -159,48 +124,29 @@
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
                   "var json = pm.response.json();",
                   "if (json.data && json.data.accessToken) {",
-                  "  pm.collectionVariables.set(\"accessToken\", json.data.accessToken);",
+                  "  pm.collectionVariables.set('accessToken', json.data.accessToken);",
+                  "}",
+                  "if (json.data && json.data.user && json.data.user.username) {",
+                  "  pm.collectionVariables.set('username', json.data.user.username);",
                   "}"
-                ],
-                "type": "text/javascript"
+                ]
               }
             }
           ],
           "request": {
+            "auth": { "type": "noauth" },
             "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
-              }
-            ],
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"securePassword123\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"securePassword123\"\n}"
             },
-            "url": {
-              "raw": "{{baseUrl}}/api/auth/login",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "login"
-              ]
-            },
-            "description": "Log in an existing user. Sets the refreshToken cookie and stores the accessToken in collection variables."
-          },
-          "response": []
+            "url": "{{baseUrl}}/api/auth/login"
+          }
         },
         {
           "name": "Refresh Token",
@@ -208,167 +154,443 @@
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
                   "var json = pm.response.json();",
                   "if (json.data && json.data.accessToken) {",
-                  "  pm.collectionVariables.set(\"accessToken\", json.data.accessToken);",
+                  "  pm.collectionVariables.set('accessToken', json.data.accessToken);",
                   "}"
-                ],
-                "type": "text/javascript"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/auth/refresh"
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/auth/logout"
+          }
+        },
+        {
+          "name": "Logout All Devices",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/auth/logout-all"
+          }
+        },
+        {
+          "name": "Forget Password",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/forget-password"
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"token_received_in_email\",\n  \"newPassword\": \"newSecurePassword123\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/reset-password"
+          }
+        }
+      ]
+    },
+    {
+      "name": "User",
+      "item": [
+        {
+          "name": "Get Me",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/user/me"
+          }
+        },
+        {
+          "name": "Update Me",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bio\": \"Artist and collector.\",\n  \"location\": \"New York, NY\"\n}"
+            },
+            "url": "{{baseUrl}}/api/user/me"
+          }
+        },
+        {
+          "name": "Change Username",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"maya_studio\"\n}"
+            },
+            "url": "{{baseUrl}}/api/user/me/username"
+          }
+        },
+        {
+          "name": "Public Profile",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": "{{baseUrl}}/api/user/{{username}}"
+          }
+        },
+        {
+          "name": "Set Role",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"artist\"\n}"
+            },
+            "url": "{{baseUrl}}/api/user/me/role"
+          }
+        },
+        {
+          "name": "Onboarding Preferences",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mediums\": [\"painting\", \"sculpture\", \"photography\"],\n  \"styles\": [\"abstract\", \"realism\", \"minimalism\"],\n  \"themes\": [\"nature\", \"portrait\", \"urban\"]\n}"
+            },
+            "url": "{{baseUrl}}/api/user/me/onboarding/preferences"
+          }
+        },
+        {
+          "name": "Onboarding Photos",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"skip\": true\n}"
+            },
+            "url": "{{baseUrl}}/api/user/me/onboarding/photos"
+          }
+        },
+        {
+          "name": "Onboarding Complete",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/user/me/onboarding/complete"
+          }
+        },
+        {
+          "name": "Seller Enable",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"location\": \"New York, NY\"\n}"
+            },
+            "url": "{{baseUrl}}/api/user/me/seller/enable"
+          }
+        },
+        {
+          "name": "Seller Disable",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/user/me/seller/disable"
+          }
+        },
+        {
+          "name": "Seller Status",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/user/me/seller"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Media",
+      "item": [
+        {
+          "name": "Presign Upload",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"purpose\": \"piece\",\n  \"contentType\": \"image/jpeg\",\n  \"pieceId\": \"{{pieceId}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/media/presign"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Pieces",
+      "item": [
+        {
+          "name": "Create Piece",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.data && json.data.id) {",
+                  "  pm.collectionVariables.set('pieceId', json.data.id);",
+                  "}"
+                ]
               }
             }
           ],
           "request": {
             "method": "POST",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/auth/refresh",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "refresh"
-              ]
-            },
-            "description": "Rotate and refresh user access token. Uses the httpOnly refreshToken cookie set during login."
-          },
-          "response": []
-        },
-        {
-          "name": "Logout",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/auth/logout",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "logout"
-              ]
-            },
-            "description": "Log out from the current session. Clears the refreshToken cookie and removes the Redis session."
-          },
-          "response": []
-        },
-        {
-          "name": "Logout All Devices",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "POST",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/auth/logout-all",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "logout-all"
-              ]
-            },
-            "description": "Log out from all sessions/devices. Protected route (requires Bearer accessToken)."
-          },
-          "response": []
-        },
-        {
-          "name": "Forget Password",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
-              }
-            ],
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"user@example.com\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\n  \"title\": \"Sunset Study\",\n  \"mediaUrl\": \"/{{username}}/pieces/sample/original.jpg\",\n  \"mediaType\": \"image\",\n  \"caption\": \"Oil on canvas\",\n  \"medium\": \"painting\",\n  \"isForSale\": false\n}"
             },
-            "url": {
-              "raw": "{{baseUrl}}/api/auth/forget-password",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "forget-password"
-              ]
-            },
-            "description": "Request a password reset link sent to the user's email."
-          },
-          "response": []
+            "url": "{{baseUrl}}/api/pieces"
+          }
         },
         {
-          "name": "Reset Password",
+          "name": "Get Piece",
           "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
-              }
-            ],
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": "{{baseUrl}}/api/pieces/{{pieceId}}"
+          }
+        },
+        {
+          "name": "Update Piece",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"token\": \"token_received_in_email\",\n  \"newPassword\": \"newSecurePassword123\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
+              "raw": "{\n  \"caption\": \"Updated caption\"\n}"
+            },
+            "url": "{{baseUrl}}/api/pieces/{{pieceId}}"
+          }
+        },
+        {
+          "name": "Related Posts",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": "{{baseUrl}}/api/pieces/{{pieceId}}/related-posts"
+          }
+        },
+        {
+          "name": "List User Pieces",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": "{{baseUrl}}/api/users/{{username}}/pieces"
+          }
+        },
+        {
+          "name": "List User Pieces For Sale",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": "{{baseUrl}}/api/users/{{username}}/pieces/for-sale"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Posts",
+      "item": [
+        {
+          "name": "Create Post",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.data && json.data.id) {",
+                  "  pm.collectionVariables.set('postId', json.data.id);",
+                  "}"
+                ]
               }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mediaUrl\": \"/{{username}}/posts/sample/original.jpg\",\n  \"mediaType\": \"image\",\n  \"caption\": \"Work in progress\",\n  \"isProcess\": true,\n  \"linkedPieceId\": \"{{pieceId}}\"\n}"
             },
+            "url": "{{baseUrl}}/api/posts"
+          }
+        },
+        {
+          "name": "Get Post",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": "{{baseUrl}}/api/posts/{{postId}}"
+          }
+        },
+        {
+          "name": "Update Post",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"caption\": \"Updated WIP caption\"\n}"
+            },
+            "url": "{{baseUrl}}/api/posts/{{postId}}"
+          }
+        },
+        {
+          "name": "List User Posts",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": "{{baseUrl}}/api/users/{{username}}/posts"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Social",
+      "item": [
+        {
+          "name": "Follow User",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/users/{{username}}/follow"
+          }
+        },
+        {
+          "name": "Unfollow User",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/api/users/{{username}}/follow"
+          }
+        },
+        {
+          "name": "Like Piece",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/pieces/{{pieceId}}/like"
+          }
+        },
+        {
+          "name": "Unlike Piece",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/api/pieces/{{pieceId}}/like"
+          }
+        },
+        {
+          "name": "Like Post",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/posts/{{postId}}/like"
+          }
+        },
+        {
+          "name": "Save Piece",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/pieces/{{pieceId}}/save"
+          }
+        },
+        {
+          "name": "Comment on Piece",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"body\": \"Beautiful work!\"\n}"
+            },
+            "url": "{{baseUrl}}/api/pieces/{{pieceId}}/comments"
+          }
+        },
+        {
+          "name": "Comment on Post",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"body\": \"Love seeing the process!\"\n}"
+            },
+            "url": "{{baseUrl}}/api/posts/{{postId}}/comments"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Feeds",
+      "item": [
+        {
+          "name": "Following Feed",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/feed/following"
+          }
+        },
+        {
+          "name": "Explore Feed",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
             "url": {
-              "raw": "{{baseUrl}}/api/auth/reset-password",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "reset-password"
-              ]
-            },
-            "description": "Reset password using the secret token from the reset link."
-          },
-          "response": []
+              "raw": "{{baseUrl}}/api/feed/explore?medium=painting",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "feed", "explore"],
+              "query": [{ "key": "medium", "value": "painting", "disabled": true }]
+            }
+          }
+        },
+        {
+          "name": "For You Feed (stub)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/feed/for-you"
+          }
         }
       ]
     }
   ],
   "variable": [
-    {
-      "key": "baseUrl",
-      "value": "http://localhost:9000",
-      "type": "string"
-    },
-    {
-      "key": "accessToken",
-      "value": "",
-      "type": "string"
-    }
+    { "key": "baseUrl", "value": "http://localhost:9000", "type": "string" },
+    { "key": "accessToken", "value": "", "type": "string" },
+    { "key": "username", "value": "maya_art", "type": "string" },
+    { "key": "pieceId", "value": "", "type": "string" },
+    { "key": "postId", "value": "", "type": "string" }
   ]
 }
