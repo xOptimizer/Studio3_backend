@@ -9,7 +9,7 @@ load_dotenv(_base / ".env")
 _env = os.getenv("FLASK_ENV", "development")
 _env_file = _base / f".env.{_env}"
 if _env_file.exists():
-    load_dotenv(_env_file)
+    load_dotenv(_env_file, override=True)
 
 from logging.config import fileConfig
 
@@ -30,8 +30,8 @@ target_metadata = Base.metadata
 
 
 def get_url():
-    from src.shared.config.database import DATABASE_URL
-    return DATABASE_URL
+    from src.shared.config.database import get_database_url
+    return get_database_url()
 
 
 def run_migrations_offline() -> None:

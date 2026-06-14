@@ -4,6 +4,7 @@ from typing import Generator
 from urllib.parse import urlparse, urlunparse, parse_qs, urlencode
 
 from sqlalchemy import create_engine, text
+from sqlalchemy.engine import Engine
 from sqlalchemy.orm import DeclarativeBase, sessionmaker, Session
 
 
@@ -22,21 +23,50 @@ def _sanitize_database_url(url: str) -> str:
     return urlunparse(parsed._replace(query=new_query))
 
 
-_raw_url = os.getenv(
-    "DATABASE_URL",
-    "postgresql://localhost:5432/flask_app_dev",
-)
-DATABASE_URL = _sanitize_database_url(_raw_url)
+def get_database_url() -> str:
+    return _sanitize_database_url(
+        os.getenv("DATABASE_URL", "postgresql://localhost:5432/flask_app_dev")
+    )
 
-engine = create_engine(
-    DATABASE_URL,
-    pool_pre_ping=True,
-    pool_recycle=300,
-    pool_size=10,
-    max_overflow=20,
-)
 
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+_engine: Engine | None = None
+_session_factory: sessionmaker | None = None
+
+
+def get_engine() -> Engine:
+    global _engine
+    if _engine is None:
+        _engine = create_engine(
+            get_database_url(),
+            pool_pre_ping=True,
+            pool_recycle=300,
+            pool_size=10,
+            max_overflow=20,
+        )
+    return _engine
+
+
+def get_session_factory() -> sessionmaker:
+    global _session_factory
+    if _session_factory is None:
+        _session_factory = sessionmaker(autocommit=False, autoflush=False, bind=get_engine())
+    return _session_factory
+
+
+class _EngineProxy:
+    """Lazy proxy — engine is created after dotenv loads."""
+
+    def __getattr__(self, name):
+        return getattr(get_engine(), name)
+
+
+class _SessionLocalProxy:
+    def __call__(self, *args, **kwargs):
+        return get_session_factory()(*args, **kwargs)
+
+
+engine = _EngineProxy()
+SessionLocal = _SessionLocalProxy()
 
 
 class Base(DeclarativeBase):
@@ -54,11 +84,11 @@ def get_db() -> Generator[Session, None, None]:
         db.close()
 
 
-def check_db_connection() -> bool:
-    """Run SELECT 1 to verify DB is reachable."""
+def check_db_connection() -> tuple[bool, str | None]:
+    """Run SELECT 1 to verify DB is reachable. Returns (ok, error_message)."""
     try:
-        with engine.connect() as conn:
+        with get_engine().connect() as conn:
             conn.execute(text("SELECT 1"))
-        return True
-    except Exception:
-        return False
+        return True, None
+    except Exception as exc:
+        return False, str(exc)

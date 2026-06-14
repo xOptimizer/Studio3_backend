@@ -36,7 +36,7 @@ def upgrade() -> None:
     op.execute(
         """
         UPDATE users u
-        SET username = username || '_' || SUBSTRING(REPLACE(u.id::text, '-', ''), 1, 6)
+        SET username = u.username || '_' || SUBSTRING(REPLACE(u.id::text, '-', ''), 1, 6)
         FROM (
             SELECT id, username,
                    ROW_NUMBER() OVER (PARTITION BY username ORDER BY created_at) AS rn

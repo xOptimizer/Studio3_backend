@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 BASE = Path(__file__).resolve().parent
 load_dotenv(BASE / ".env")
 env = os.getenv("FLASK_ENV", "production")
-load_dotenv(BASE / f".env.{env}")
+load_dotenv(BASE / f".env.{env}", override=True)
 
 import sys
 sys.path.insert(0, str(BASE))
