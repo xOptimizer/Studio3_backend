@@ -35,7 +35,7 @@ def create_app():
     # Health at root
     @app.get("/")
     def health():
-        return {"message": "Virtual Instructor Backend Running"}, 200
+        return {"message": "Studiothree Discover API running"}, 200
 
     # Global error handler (register last)
     register_error_handler(app)

@@ -1,6 +1,6 @@
-# Project Setup
+# Studiothree Discover — Project Setup
 
-This guide walks you through setting up and running the Flask REST API backend.
+This guide walks you through setting up and running the Studiothree Discover backend API.
 
 ## Prerequisites
 
@@ -104,7 +104,7 @@ Set `DATABASE_URL`, `REDIS_URL`, `JWT_SECRET`, and `SECRET_KEY` in `.env.product
 ## 8. Verify
 
 - **Health:** Open or curl `http://localhost:9000/`  
-  Expected: `{ "message": "Virtual Instructor Backend Running" }`
+  Expected: `{ "message": "Studiothree Discover API running" }`
 - **API:** See [API documentation](API.md) for endpoints and examples.
 
 ## Troubleshooting

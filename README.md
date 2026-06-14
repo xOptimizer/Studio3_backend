@@ -1,6 +1,6 @@
-# Flask REST API
+# Studiothree Discover — Backend API
 
-Python Flask backend with **PostgreSQL** (SQLAlchemy 2.0), **Alembic**, and **Redis**. Layout: routes → controllers → services / DAOs.
+Python Flask backend for **Studiothree Discover** (mobile + web). PostgreSQL (SQLAlchemy 2.0), Alembic, and Redis. Layout: routes → controllers → services / DAOs.
 
 **Documentation:** See the [`docs/`](docs/) folder:
 - [**Project setup**](docs/README.md) – prerequisites, env, DB, Redis, run, troubleshooting
@@ -66,7 +66,7 @@ project_root/
 
 ## API
 
-- **Health:** `GET /` → `{ "message": "Virtual Instructor Backend Running" }`
+- **Health:** `GET /` → `{ "message": "Studiothree Discover API running" }`
 - **Auth** (`/api/auth`):
   - `POST /otp/generate`, `POST /otp/resend` – body `{ "email" }`
   - `POST /register` – body `{ "name", "email", "password", "otp" }`

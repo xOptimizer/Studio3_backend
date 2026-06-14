@@ -1,8 +1,8 @@
 {
   "info": {
     "_postman_id": "7f8b9e6a-1c5d-4f3b-8d2e-9c7b0a8e1d2f",
-    "name": "Studio 3 API",
-    "description": "Postman collection for the Studio 3 Flask backend (Phases 1–4). Import and set collection variables: baseUrl, accessToken, username, pieceId, postId.",
+    "name": "Studiothree Discover API",
+    "description": "Postman collection for the Studiothree Discover backend (Phases 1–4). Import and set collection variables: baseUrl, accessToken, username, pieceId, postId.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {

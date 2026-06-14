@@ -1,6 +1,6 @@
 # API Documentation (Postman-ready)
 
-For the Flask backend. Use this doc to build and test requests in Postman and to integrate from the frontend.
+For the **Studiothree Discover** backend. Use this doc to build and test requests in Postman and to integrate from mobile (iOS/Android) or web clients.
 
 ---
 
@@ -100,7 +100,7 @@ Authorization: Bearer {{accessToken}}
 
 ```json
 {
-  "message": "Virtual Instructor Backend Running"
+  "message": "Studiothree Discover API running"
 }
 ```
 
