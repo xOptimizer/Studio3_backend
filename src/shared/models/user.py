@@ -25,6 +25,7 @@ class User(Base):
     cover_photo_url = Column(String(512), nullable=True)
     bio = Column(Text, nullable=True)
     location = Column(String(255), nullable=True)
+    phone = Column(String(32), nullable=True)
     email_verified = Column(Boolean, default=False, nullable=False)
     role = Column(String(32), nullable=True)
     seller_enabled = Column(Boolean, default=False, nullable=False)

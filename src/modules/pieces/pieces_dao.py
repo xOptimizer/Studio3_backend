@@ -30,6 +30,22 @@ def list_user_pieces(db: Session, user_id: uuid.UUID, for_sale_only: bool = Fals
     return list(db.execute(q.order_by(Piece.created_at.desc())).scalars().all())
 
 
+def list_saved_pieces(db: Session, user_id: uuid.UUID) -> list[Piece]:
+    from src.shared.models.social import Save
+
+    q = (
+        select(Piece)
+        .join(Save, Save.target_id == Piece.id)
+        .where(
+            Save.user_id == user_id,
+            Save.target_type == "piece",
+            Piece.deleted_at.is_(None),
+        )
+        .order_by(Save.created_at.desc())
+    )
+    return list(db.execute(q).scalars().all())
+
+
 def piece_to_dict(piece: Piece) -> dict:
     return {
         "id": str(piece.id),
@@ -48,6 +64,10 @@ def piece_to_dict(piece: Piece) -> dict:
         "currency": piece.currency,
         "dimensions": piece.dimensions,
         "shippingRegion": piece.shipping_region,
+        "yearCreated": piece.year_created,
+        "framingMounting": piece.framing_mounting,
+        "provenance": piece.provenance,
+        "handlingNotes": piece.handling_notes,
         "status": piece.status,
         "createdAt": piece.created_at.isoformat(),
     }

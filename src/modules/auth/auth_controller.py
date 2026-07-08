@@ -52,14 +52,6 @@ from src.modules.sessions.refresh_token_dao import (
     revoke_by_id,
     revoke_all_for_user,
 )
-from src.modules.auth.google_oauth_service import (
-    get_google_auth_url,
-    exchange_code_for_tokens,
-    verify_google_id_token,
-    get_or_create_user_from_google,
-    consume_state,
-    build_redirect_with_token,
-)
 from src.modules.user.user_serializers import user_to_dict
 
 SALT_ROUNDS = int(os.getenv("SALT_ROUNDS", "10"))
@@ -106,7 +98,7 @@ def _issue_session_and_tokens(user, request_obj=None):
             cookie_opts["secure"] = True
 
         return (
-            {"accessToken": access_token, "user": user_to_dict(user)},
+            {"accessToken": access_token, "user": user_to_dict(db, user)},
             200,
             {"set_refresh_cookie": cookie_opts},
         )
@@ -162,6 +154,7 @@ def register():
     email = (body.get("email") or "").strip().lower()
     password = body.get("password")
     otp = (body.get("otp") or "").strip()
+    phone = (body.get("phone") or "").strip() or None
 
     if not username_raw:
         raise AppError(USERNAME_REQUIRED, 400)
@@ -200,6 +193,7 @@ def register():
                 name=name,
                 password_hash=_hash_password(password),
                 email_verified=True,
+                phone=phone,
             )
         except IntegrityError:
             db.rollback()
@@ -332,36 +326,3 @@ def reset_password():
     if not ok:
         raise AppError(INVALID_RESET_TOKEN, 400)
     return {"message": "Password has been reset successfully."}, 200, None
-
-
-def google_redirect():
-    from flask import redirect
-    return redirect(get_google_auth_url())
-
-
-def google_callback():
-    from flask import redirect
-    state = request.args.get("state")
-    code = request.args.get("code")
-    if not state or not consume_state(state):
-        raise AppError("Invalid or expired OAuth state.", 400)
-    if not code:
-        raise AppError("Missing authorization code.", 400)
-    tokens = exchange_code_for_tokens(code)
-    id_token = tokens.get("id_token")
-    if not id_token:
-        raise AppError("Google did not return id_token.", 400)
-    payload = verify_google_id_token(id_token)
-    db = SessionLocal()
-    try:
-        user, _ = get_or_create_user_from_google(db, payload, id_token_raw=id_token)
-        data, status, cookie_ops = _issue_session_and_tokens(user, request)
-        url = build_redirect_with_token(data["accessToken"])
-        resp = redirect(url)
-        if cookie_ops and cookie_ops.get("set_refresh_cookie"):
-            opts = cookie_ops["set_refresh_cookie"].copy()
-            val = opts.pop("value")
-            resp.set_cookie("refreshToken", val, **opts)
-        return resp
-    finally:
-        db.close()

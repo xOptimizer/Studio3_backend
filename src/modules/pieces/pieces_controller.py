@@ -1,5 +1,6 @@
 """Pieces controller."""
 import uuid
+from typing import Optional
 
 from flask import request, g
 
@@ -8,7 +9,15 @@ from src.shared.storage.s3_service import validate_user_media_url
 from src.shared.utils.app_error import AppError
 from src.modules.auth.auth_dao import find_user_by_username
 from src.modules.user.user_dao import get_user_by_id
-from src.modules.pieces.pieces_dao import create_piece, get_piece, list_user_pieces, piece_to_dict
+from src.modules.pieces.pieces_dao import (
+    create_piece,
+    get_piece,
+    list_user_pieces,
+    list_saved_pieces,
+    piece_to_dict,
+)
+from src.modules.social import social_dao
+from src.modules.series import series_dao
 
 
 def _validate_sale_fields(body, seller_enabled: bool):
@@ -54,6 +63,10 @@ def create():
             currency=body.get("currency", "USD"),
             dimensions=body.get("dimensions"),
             shipping_region=body.get("shippingRegion"),
+            year_created=body.get("yearCreated"),
+            framing_mounting=body.get("framingMounting"),
+            provenance=body.get("provenance"),
+            handling_notes=body.get("handlingNotes"),
             status="live",
         )
         return piece_to_dict(piece), 201
@@ -61,13 +74,34 @@ def create():
         db.close()
 
 
-def get_detail(piece_id: str):
+def enrich_piece_dict(db, piece, viewer_id: Optional[uuid.UUID]) -> dict:
+    from src.modules.posts.posts_dao import list_related_posts, post_to_dict
+
+    base = piece_to_dict(piece)
+    author = get_user_by_id(db, piece.user_id)
+    base["author"] = {
+        "username": author.username,
+        "name": author.name,
+        "profilePhotoUrl": author.image,
+        "isFollowing": social_dao.user_follows(db, viewer_id, author.id) if viewer_id else False,
+    }
+    base["likeCount"] = social_dao.count_likes(db, "piece", piece.id)
+    base["commentCount"] = social_dao.count_comments(db, "piece", piece.id)
+    base["isLiked"] = social_dao.user_liked(db, "piece", piece.id, viewer_id) if viewer_id else False
+    base["isSaved"] = social_dao.user_saved(db, "piece", piece.id, viewer_id) if viewer_id else False
+    series = series_dao.get_series_for_piece(db, piece.id)
+    base["series"] = series_dao.series_detail_dict(db, series) if series else None
+    base["relatedPosts"] = [post_to_dict(p) for p in list_related_posts(db, piece.id)]
+    return base
+
+
+def get_detail(piece_id: str, viewer_id: Optional[uuid.UUID] = None):
     db = SessionLocal()
     try:
         piece = get_piece(db, uuid.UUID(piece_id))
         if not piece:
             raise AppError("Piece not found.", 404)
-        return piece_to_dict(piece), 200
+        return enrich_piece_dict(db, piece, viewer_id), 200
     finally:
         db.close()
 
@@ -86,6 +120,8 @@ def patch(piece_id: str):
         for attr, key in [
             ("title", "title"), ("caption", "caption"), ("medium", "medium"),
             ("alt_text", "altText"), ("shipping_region", "shippingRegion"),
+            ("year_created", "yearCreated"), ("framing_mounting", "framingMounting"),
+            ("provenance", "provenance"), ("handling_notes", "handlingNotes"),
         ]:
             if key in body:
                 setattr(piece, attr, body[key])
@@ -117,5 +153,14 @@ def list_for_user(username: str, for_sale_only: bool = False):
             raise AppError("User not found.", 404)
         pieces = list_user_pieces(db, user.id, for_sale_only=for_sale_only)
         return [piece_to_dict(p) for p in pieces], 200
+    finally:
+        db.close()
+
+
+def list_saved_for_me(user_id: uuid.UUID):
+    db = SessionLocal()
+    try:
+        pieces = list_saved_pieces(db, user_id)
+        return [enrich_piece_dict(db, p, user_id) for p in pieces], 200
     finally:
         db.close()

@@ -1,13 +1,17 @@
 """Social graph controller."""
 import uuid
+from datetime import datetime
 
 from flask import request, g
+from sqlalchemy import select
 
 from src.shared.config.database import SessionLocal
 from src.shared.models.social import Follow, Like, Comment, Save, Collection, CollectionItem
+from src.shared.models.user import User
 from src.shared.utils.app_error import AppError
 from src.modules.auth.auth_dao import find_user_by_username
 from src.modules.user.user_dao import get_user_by_id
+from src.modules.social import social_dao
 
 
 def follow(username: str):
@@ -128,5 +132,24 @@ def add_comment(target_type: str, target_id: str):
             "username": me.username,
             "createdAt": comment.created_at.isoformat(),
         }, 201
+    finally:
+        db.close()
+
+
+def get_comments(target_type: str, target_id: str, cursor: str | None, limit: int = 50):
+    db = SessionLocal()
+    try:
+        tid = uuid.UUID(target_id)
+        before = datetime.fromisoformat(cursor) if cursor else None
+        comments = social_dao.list_comments(db, target_type, tid, limit=limit + 1, before=before)
+        has_more = len(comments) > limit
+        comments = comments[:limit]
+        user_ids = {c.user_id for c in comments}
+        users = {}
+        if user_ids:
+            users = {u.id: u for u in db.execute(select(User).where(User.id.in_(user_ids))).scalars()}
+        items = [social_dao.comment_to_dict(c, users.get(c.user_id)) for c in comments]
+        next_cursor = comments[-1].created_at.isoformat() if has_more and comments else None
+        return {"items": items, "nextCursor": next_cursor}, 200
     finally:
         db.close()

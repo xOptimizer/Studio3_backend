@@ -1,5 +1,6 @@
 """Posts controller."""
 import uuid
+from typing import Optional
 
 from flask import request, g
 
@@ -8,7 +9,7 @@ from src.shared.storage.s3_service import validate_user_media_url
 from src.shared.utils.app_error import AppError
 from src.modules.auth.auth_dao import find_user_by_username
 from src.modules.user.user_dao import get_user_by_id
-from src.modules.pieces.pieces_dao import get_piece
+from src.modules.pieces.pieces_dao import get_piece, piece_to_dict
 from src.modules.posts.posts_dao import (
     create_post,
     get_post,
@@ -16,6 +17,7 @@ from src.modules.posts.posts_dao import (
     list_related_posts,
     post_to_dict,
 )
+from src.modules.social import social_dao
 
 
 def create():
@@ -51,13 +53,34 @@ def create():
         db.close()
 
 
-def get_detail(post_id: str):
+def enrich_post_dict(db, post, viewer_id: Optional[uuid.UUID]) -> dict:
+    base = post_to_dict(post)
+    author = get_user_by_id(db, post.user_id)
+    base["author"] = {
+        "username": author.username,
+        "name": author.name,
+        "profilePhotoUrl": author.image,
+        "isFollowing": social_dao.user_follows(db, viewer_id, author.id) if viewer_id else False,
+    }
+    base["likeCount"] = social_dao.count_likes(db, "post", post.id)
+    base["commentCount"] = social_dao.count_comments(db, "post", post.id)
+    base["isLiked"] = social_dao.user_liked(db, "post", post.id, viewer_id) if viewer_id else False
+    base["isSaved"] = social_dao.user_saved(db, "post", post.id, viewer_id) if viewer_id else False
+    if post.linked_piece_id:
+        piece = get_piece(db, post.linked_piece_id)
+        base["piece"] = piece_to_dict(piece) if piece else None
+    else:
+        base["piece"] = None
+    return base
+
+
+def get_detail(post_id: str, viewer_id: Optional[uuid.UUID] = None):
     db = SessionLocal()
     try:
         post = get_post(db, uuid.UUID(post_id))
         if not post:
             raise AppError("Post not found.", 404)
-        return post_to_dict(post), 200
+        return enrich_post_dict(db, post, viewer_id), 200
     finally:
         db.close()
 

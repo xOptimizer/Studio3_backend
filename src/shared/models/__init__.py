@@ -8,6 +8,7 @@ from src.shared.models.username_history import UsernameHistory
 from src.shared.models.piece import Piece
 from src.shared.models.post import Post
 from src.shared.models.social import Follow, Like, Comment, Collection, CollectionItem, Save
+from src.shared.models.series import Series, SeriesPiece
 
 __all__ = [
     "User",
@@ -24,4 +25,6 @@ __all__ = [
     "Collection",
     "CollectionItem",
     "Save",
+    "Series",
+    "SeriesPiece",
 ]

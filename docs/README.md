@@ -7,8 +7,7 @@ This guide walks you through setting up and running the Studiothree Discover bac
 - **Python 3.9+**
 - **PostgreSQL** – running and accessible
 - **Redis** – running and accessible
-- (Optional) **SMTP** – for OTP and password-reset emails  
-- (Optional) **Google OAuth** – for Google sign-in
+- (Optional) **SMTP** – for OTP and password-reset emails
 
 ## 1. Clone and enter the project
 
@@ -53,7 +52,6 @@ Environment is selected by `FLASK_ENV`:
 Optional for full features:
 
 - **SMTP** – `SMTP_HOST`, `SMTP_USER`, `SMTP_PASS` (and optionally `SMTP_PORT`) for OTP and password-reset emails
-- **Google OAuth** – `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `BACKEND_URL`, `FRONTEND_URL`, `OAUTH_SUCCESS_PATH`
 - **CORS** – `FRONTEND_URL` (used for CORS and redirects)
 
 ## 5. Database
@@ -75,7 +73,6 @@ Ensure Redis is running and reachable at the URL set in `REDIS_URL`. The app use
 
 - Sessions (login state)
 - OTP storage and rate limits
-- OAuth state (Google)
 
 ## 7. Run the application
 
@@ -115,6 +112,5 @@ Set `DATABASE_URL`, `REDIS_URL`, `JWT_SECRET`, and `SECRET_KEY` in `.env.product
 | `Redis connection failed` | Redis is running; `REDIS_URL` is correct. |
 | `ModuleNotFoundError: src` | Run commands from the **project root** (where `run.py` and `src/` are). |
 | OTP / reset emails not sent | SMTP vars set in env; no errors in `logs/error.log`. |
-| Google OAuth fails | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `BACKEND_URL`, `FRONTEND_URL` set; redirect URI in Google Console matches `BACKEND_URL/api/auth/google/callback`. |
 
 Logs are written under the `logs/` directory (e.g. `error.log`, `combined.log`).

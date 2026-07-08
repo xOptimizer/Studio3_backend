@@ -7,7 +7,6 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from src.shared.models.user import User
-from src.shared.models.account import Account
 from src.shared.models.password_reset_token import PasswordResetToken
 from src.shared.models.username_history import UsernameHistory
 
@@ -50,6 +49,7 @@ def create_user(
     image: Optional[str] = None,
     email_verified: bool = False,
     role: Optional[str] = None,
+    phone: Optional[str] = None,
 ) -> User:
     user = User(
         id=uuid.uuid4(),
@@ -60,50 +60,12 @@ def create_user(
         image=image,
         email_verified=email_verified,
         role=role,
+        phone=phone,
     )
     db.add(user)
     db.commit()
     db.refresh(user)
     return user
-
-
-def create_account(
-    db: Session,
-    user_id: uuid.UUID,
-    provider: str,
-    provider_account_id: str,
-    access_token: Optional[str] = None,
-    refresh_token: Optional[str] = None,
-    expires_at: Optional[datetime] = None,
-    id_token: Optional[str] = None,
-) -> Account:
-    acc = Account(
-        id=uuid.uuid4(),
-        user_id=user_id,
-        type="oauth",
-        provider=provider,
-        provider_account_id=provider_account_id,
-        access_token=access_token,
-        refresh_token=refresh_token,
-        expires_at=expires_at,
-        id_token=id_token,
-    )
-    db.add(acc)
-    db.commit()
-    db.refresh(acc)
-    return acc
-
-
-def find_account_by_provider(
-    db: Session, provider: str, provider_account_id: str
-) -> Optional[Account]:
-    result = db.execute(
-        select(Account).where(
-            Account.provider == provider,
-            Account.provider_account_id == provider_account_id,
-        )
-    )
-    return result.scalar_one_or_none()
 
 
 def create_password_reset_token(

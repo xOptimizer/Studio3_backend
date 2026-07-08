@@ -1,7 +1,9 @@
 """Posts routes."""
-from flask import Blueprint
+import uuid
 
-from src.middlewares.auth_middleware import onboarding_required
+from flask import Blueprint, g
+
+from src.middlewares.auth_middleware import onboarding_required, optional_auth
 from src.shared.utils.api_response import success_response
 from src.shared.utils.async_handler import async_handler
 from src.modules.posts import posts_controller
@@ -23,9 +25,11 @@ def create_post():
 
 
 @posts_bp.get("/<post_id>")
+@optional_auth
 @async_handler
 def get_post(post_id):
-    data, status = posts_controller.get_detail(post_id)
+    viewer_id = uuid.UUID(g.user["id"]) if getattr(g, "user", None) else None
+    data, status = posts_controller.get_detail(post_id, viewer_id)
     return _ok("OK", data, status)
 
 

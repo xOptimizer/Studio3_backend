@@ -29,3 +29,7 @@ logs/
 # graphify output (local only — do not push)
 graphify-out/
 .agents/
+
+# Claude Code local config (local only — do not push)
+.claude/
+CLAUDE.md

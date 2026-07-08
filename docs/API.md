@@ -397,14 +397,6 @@ Error: `400` if token invalid/expired or `newPassword` missing.
 
 ---
 
-### Auth – Google OAuth (browser)
-
-**GET** `{{baseUrl}}/api/auth/google` – redirects user to Google. Not meant to be called from Postman as a normal API request; use in the browser or a frontend app.
-
-**GET** `{{baseUrl}}/api/auth/google/callback?code=...&state=...` – callback URL; server redirects to frontend with `#access_token=...` and sets refresh cookie. Test OAuth in the app, not in Postman.
-
----
-
 ## User & profile
 
 ### User – Get me (protected)
@@ -551,8 +543,6 @@ All social mutation routes require Bearer + completed onboarding.
 | POST | `{{baseUrl}}/api/auth/logout-all` | Bearer | — |
 | POST | `{{baseUrl}}/api/auth/forget-password` | — | `{ "email" }` |
 | POST | `{{baseUrl}}/api/auth/reset-password` | — | `{ "token", "newPassword" }` |
-| GET | `{{baseUrl}}/api/auth/google` | — | Browser redirect |
-| GET | `{{baseUrl}}/api/auth/google/callback` | — | OAuth callback |
 | GET | `{{baseUrl}}/api/user/me` | Bearer | — |
 | PATCH | `{{baseUrl}}/api/user/me` | Bearer | Profile fields |
 | PATCH | `{{baseUrl}}/api/user/me/username` | Bearer | `{ "username" }` |

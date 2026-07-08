@@ -1,5 +1,5 @@
 """Social routes."""
-from flask import Blueprint
+from flask import Blueprint, request
 
 from src.middlewares.auth_middleware import onboarding_required
 from src.shared.utils.api_response import success_response
@@ -108,3 +108,21 @@ def comment_piece(piece_id):
 def comment_post(post_id):
     data, status = social_controller.add_comment("post", post_id)
     return _ok("Comment added.", data, status)
+
+
+@social_bp.get("/pieces/<piece_id>/comments")
+@async_handler
+def list_piece_comments(piece_id):
+    cursor = request.args.get("cursor")
+    limit = min(int(request.args.get("limit", 50)), 100)
+    data, status = social_controller.get_comments("piece", piece_id, cursor, limit)
+    return _ok("OK", data, status)
+
+
+@social_bp.get("/posts/<post_id>/comments")
+@async_handler
+def list_post_comments(post_id):
+    cursor = request.args.get("cursor")
+    limit = min(int(request.args.get("limit", 50)), 100)
+    data, status = social_controller.get_comments("post", post_id, cursor, limit)
+    return _ok("OK", data, status)

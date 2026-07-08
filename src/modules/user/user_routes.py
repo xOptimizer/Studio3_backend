@@ -1,11 +1,14 @@
 """User and media routes."""
-from flask import Blueprint
+import uuid
+
+from flask import Blueprint, g
 
 from src.middlewares.auth_middleware import auth_required, optional_auth
 from src.shared.utils.api_response import success_response
 from src.shared.utils.async_handler import async_handler
 from src.modules.user import user_controller
 from src.modules.media import media_controller
+from src.modules.pieces import pieces_controller
 
 user_bp = Blueprint("user", __name__)
 media_bp = Blueprint("media", __name__)
@@ -96,7 +99,24 @@ def seller_status():
     return _ok("OK", data, status)
 
 
+@user_bp.get("/me/seller/analytics")
+@auth_required
+@async_handler
+def seller_analytics():
+    data, status = user_controller.seller_analytics()
+    return _ok("OK", data, status)
+
+
+@user_bp.get("/me/saved/pieces")
+@auth_required
+@async_handler
+def saved_pieces():
+    data, status = pieces_controller.list_saved_for_me(uuid.UUID(g.user["id"]))
+    return _ok("OK", data, status)
+
+
 @user_bp.get("/<username>")
+@optional_auth
 @async_handler
 def public_profile(username):
     data, status = user_controller.get_public_profile(username)

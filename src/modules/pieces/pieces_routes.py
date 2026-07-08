@@ -1,7 +1,9 @@
 """Pieces routes."""
-from flask import Blueprint
+import uuid
 
-from src.middlewares.auth_middleware import onboarding_required
+from flask import Blueprint, g
+
+from src.middlewares.auth_middleware import onboarding_required, optional_auth
 from src.shared.utils.api_response import success_response
 from src.shared.utils.async_handler import async_handler
 from src.modules.pieces import pieces_controller
@@ -23,9 +25,11 @@ def create_piece():
 
 
 @pieces_bp.get("/<piece_id>")
+@optional_auth
 @async_handler
 def get_piece(piece_id):
-    data, status = pieces_controller.get_detail(piece_id)
+    viewer_id = uuid.UUID(g.user["id"]) if getattr(g, "user", None) else None
+    data, status = pieces_controller.get_detail(piece_id, viewer_id)
     return _ok("OK", data, status)
 
 

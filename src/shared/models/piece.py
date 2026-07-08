@@ -31,6 +31,10 @@ class Piece(Base):
     currency = Column(String(3), default="USD", nullable=False)
     dimensions = Column(JSONB, nullable=True)
     shipping_region = Column(String(64), nullable=True)
+    year_created = Column(Integer, nullable=True)
+    framing_mounting = Column(Text, nullable=True)
+    provenance = Column(Text, nullable=True)
+    handling_notes = Column(Text, nullable=True)
     status = Column(String(32), default="live", nullable=False)  # draft|live|sold|delisted
     deleted_at = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), nullable=False, default=utc_now)

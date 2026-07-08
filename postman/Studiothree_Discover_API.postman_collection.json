@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "7f8b9e6a-1c5d-4f3b-8d2e-9c7b0a8e1d2f",
     "name": "Studiothree Discover API",
-    "description": "Postman collection for the Studiothree Discover backend (Phases 1–4). Import and set collection variables: baseUrl, accessToken, username, pieceId, postId.",
+    "description": "Postman collection for the Studiothree Discover backend (Phases 1–5). Import and set collection variables: baseUrl, accessToken, username, pieceId, postId, seriesId.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -113,7 +113,7 @@
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"maya_art\",\n  \"name\": \"John Doe\",\n  \"email\": \"user@example.com\",\n  \"password\": \"securePassword123\",\n  \"otp\": \"123456\"\n}"
+              "raw": "{\n  \"username\": \"maya_art\",\n  \"name\": \"John Doe\",\n  \"email\": \"user@example.com\",\n  \"password\": \"securePassword123\",\n  \"otp\": \"123456\",\n  \"phone\": \"+12145551234\"\n}"
             },
             "url": "{{baseUrl}}/api/auth/register"
           }
@@ -328,6 +328,22 @@
             "method": "GET",
             "url": "{{baseUrl}}/api/user/me/seller"
           }
+        },
+        {
+          "name": "Seller Analytics",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/user/me/seller/analytics",
+            "description": "Returns savesCount/likesCount aggregated across the seller's pieces. salesCount/inquiriesCount are null until Orders/Inquiries domains exist."
+          }
+        },
+        {
+          "name": "Get Saved Pieces",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/user/me/saved/pieces",
+            "description": "Pieces the current user has saved, enriched with author/isLiked/isSaved/series/relatedPosts."
+          }
         }
       ]
     },
@@ -372,7 +388,7 @@
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"title\": \"Sunset Study\",\n  \"mediaUrl\": \"/{{username}}/pieces/sample/original.jpg\",\n  \"mediaType\": \"image\",\n  \"caption\": \"Oil on canvas\",\n  \"medium\": \"painting\",\n  \"isForSale\": false\n}"
+              "raw": "{\n  \"title\": \"Sunset Study\",\n  \"mediaUrl\": \"/{{username}}/pieces/sample/original.jpg\",\n  \"mediaType\": \"image\",\n  \"caption\": \"Oil on canvas\",\n  \"medium\": \"painting\",\n  \"isForSale\": false,\n  \"yearCreated\": 2024,\n  \"framingMounting\": \"Framed, ready to hang\",\n  \"provenance\": \"Direct from artist\",\n  \"handlingNotes\": \"Keep away from direct sunlight\"\n}"
             },
             "url": "{{baseUrl}}/api/pieces"
           }
@@ -382,7 +398,8 @@
           "request": {
             "auth": { "type": "noauth" },
             "method": "GET",
-            "url": "{{baseUrl}}/api/pieces/{{pieceId}}"
+            "url": "{{baseUrl}}/api/pieces/{{pieceId}}",
+            "description": "Enriched detail: author (with isFollowing), series, relatedPosts, likeCount, commentCount, isLiked, isSaved. Send Bearer token to get viewer-specific isLiked/isSaved/isFollowing; omit for anonymous (all default false)."
           }
         },
         {
@@ -392,7 +409,7 @@
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"caption\": \"Updated caption\"\n}"
+              "raw": "{\n  \"caption\": \"Updated caption\",\n  \"yearCreated\": 2024,\n  \"framingMounting\": \"Framed, ready to hang\",\n  \"provenance\": \"Direct from artist\",\n  \"handlingNotes\": \"Keep away from direct sunlight\"\n}"
             },
             "url": "{{baseUrl}}/api/pieces/{{pieceId}}"
           }
@@ -457,7 +474,8 @@
           "request": {
             "auth": { "type": "noauth" },
             "method": "GET",
-            "url": "{{baseUrl}}/api/posts/{{postId}}"
+            "url": "{{baseUrl}}/api/posts/{{postId}}",
+            "description": "Enriched detail: author, piece (full linked piece summary when linkedPieceId set), likeCount, commentCount, isLiked, isSaved."
           }
         },
         {
@@ -550,6 +568,39 @@
             },
             "url": "{{baseUrl}}/api/posts/{{postId}}/comments"
           }
+        },
+        {
+          "name": "Get Comments on Piece",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/pieces/{{pieceId}}/comments?limit=50",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "pieces", "{{pieceId}}", "comments"],
+              "query": [
+                { "key": "limit", "value": "50" },
+                { "key": "cursor", "value": "", "disabled": true }
+              ]
+            },
+            "description": "Cursor-paginated. Response: { items: [{id, body, author, createdAt}], nextCursor }. Pass nextCursor back as ?cursor= for the next page."
+          }
+        },
+        {
+          "name": "Get Comments on Post",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/posts/{{postId}}/comments?limit=50",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "posts", "{{postId}}", "comments"],
+              "query": [
+                { "key": "limit", "value": "50" },
+                { "key": "cursor", "value": "", "disabled": true }
+              ]
+            }
+          }
         }
       ]
     },
@@ -558,22 +609,64 @@
       "item": [
         {
           "name": "Following Feed",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.data && json.data.nextCursor) {",
+                  "  pm.collectionVariables.set('feedCursor', json.data.nextCursor);",
+                  "}"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
-            "url": "{{baseUrl}}/api/feed/following"
+            "url": {
+              "raw": "{{baseUrl}}/api/feed/following?limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "feed", "following"],
+              "query": [
+                { "key": "limit", "value": "20" },
+                { "key": "cursor", "value": "{{feedCursor}}", "disabled": true }
+              ]
+            },
+            "description": "Cursor-paginated: { data: { items: [...], nextCursor } }. Enable the cursor query param and set it to {{feedCursor}} to fetch the next page."
           }
         },
         {
           "name": "Explore Feed",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.data && json.data.nextCursor) {",
+                  "  pm.collectionVariables.set('feedCursor', json.data.nextCursor);",
+                  "}"
+                ]
+              }
+            }
+          ],
           "request": {
             "auth": { "type": "noauth" },
             "method": "GET",
             "url": {
-              "raw": "{{baseUrl}}/api/feed/explore?medium=painting",
+              "raw": "{{baseUrl}}/api/feed/explore?limit=20",
               "host": ["{{baseUrl}}"],
               "path": ["api", "feed", "explore"],
-              "query": [{ "key": "medium", "value": "painting", "disabled": true }]
-            }
+              "query": [
+                { "key": "medium", "value": "painting", "disabled": true },
+                { "key": "limit", "value": "20" },
+                { "key": "cursor", "value": "{{feedCursor}}", "disabled": true }
+              ]
+            },
+            "description": "Pieces-only feed, cursor-paginated. Send Bearer token for viewer-specific isLiked/isSaved; omit for anonymous."
           }
         },
         {
@@ -584,6 +677,85 @@
           }
         }
       ]
+    },
+    {
+      "name": "Series",
+      "item": [
+        {
+          "name": "List User Series",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": "{{baseUrl}}/api/users/{{username}}/series",
+            "description": "Only series with pieceCount > 1 are returned."
+          }
+        },
+        {
+          "name": "Create Series",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.data && json.data.id) {",
+                  "  pm.collectionVariables.set('seriesId', json.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Riverwalk Dream\",\n  \"pieceIds\": [\"{{pieceId}}\"]\n}"
+            },
+            "url": "{{baseUrl}}/api/series"
+          }
+        },
+        {
+          "name": "Get Series",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": "{{baseUrl}}/api/series/{{seriesId}}"
+          }
+        },
+        {
+          "name": "Update Series",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Riverwalk Dream (Renamed)\",\n  \"pieceOrder\": [\"{{pieceId}}\"]\n}"
+            },
+            "url": "{{baseUrl}}/api/series/{{seriesId}}"
+          }
+        },
+        {
+          "name": "Add Piece to Series",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pieceId\": \"{{pieceId}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/series/{{seriesId}}/pieces"
+          }
+        },
+        {
+          "name": "Remove Piece from Series",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/api/series/{{seriesId}}/pieces/{{pieceId}}"
+          }
+        }
+      ]
     }
   ],
   "variable": [
@@ -591,6 +763,8 @@
     { "key": "accessToken", "value": "", "type": "string" },
     { "key": "username", "value": "maya_art", "type": "string" },
     { "key": "pieceId", "value": "", "type": "string" },
-    { "key": "postId", "value": "", "type": "string" }
+    { "key": "postId", "value": "", "type": "string" },
+    { "key": "seriesId", "value": "", "type": "string" },
+    { "key": "feedCursor", "value": "", "type": "string" }
   ]
 }

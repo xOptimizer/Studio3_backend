@@ -1,7 +1,7 @@
 """Feed routes."""
 from flask import Blueprint
 
-from src.middlewares.auth_middleware import auth_required, onboarding_required
+from src.middlewares.auth_middleware import auth_required, onboarding_required, optional_auth
 from src.shared.utils.api_response import success_response
 from src.shared.utils.async_handler import async_handler
 from src.modules.feeds import feeds_controller
@@ -23,6 +23,7 @@ def following():
 
 
 @feeds_bp.get("/explore")
+@optional_auth
 @async_handler
 def explore():
     data, status = feeds_controller.explore_feed()

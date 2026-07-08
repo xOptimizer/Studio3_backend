@@ -12,7 +12,7 @@ Python Flask backend for **Studiothree Discover** (mobile + web). PostgreSQL (SQ
 - **SQLAlchemy 2** – engine, session, models (no Flask-SQLAlchemy)
 - **Alembic** – migrations (`alembic/`)
 - **PostgreSQL** – `psycopg2-binary`
-- **Redis** – sessions, OTP, OAuth state
+- **Redis** – sessions, OTP
 - **JWT** – access tokens; refresh token in httpOnly cookie
 - **Gunicorn** – production WSGI
 
@@ -22,7 +22,7 @@ Python Flask backend for **Studiothree Discover** (mobile + web). PostgreSQL (SQ
 - **`.env.development`** – when `FLASK_ENV=development`
 - **`.env.production`** – when `FLASK_ENV=production`
 
-Copy `.env.example` and set `DATABASE_URL`, `REDIS_URL`, `JWT_SECRET`, `SECRET_KEY` (and SMTP / Google OAuth if used).
+Copy `.env.example` and set `DATABASE_URL`, `REDIS_URL`, `JWT_SECRET`, `SECRET_KEY` (and SMTP if used).
 
 ## Setup
 
@@ -55,7 +55,7 @@ project_root/
 │   │   ├── notification/  # email_service
 │   │   └── templates/     # OTP, password-reset HTML
 │   └── modules/
-│       ├── auth/           # auth_routes, auth_controller, auth_dao, services (OTP, password_reset), google_oauth_service
+│       ├── auth/           # auth_routes, auth_controller, auth_dao, services (OTP, password_reset)
 │       └── sessions/       # session_service (Redis), refresh_token_dao
 ├── alembic/
 │   ├── env.py
@@ -74,7 +74,6 @@ project_root/
   - `POST /refresh` – cookie `refreshToken`
   - `POST /logout`, `POST /logout-all` (protected)
   - `POST /forget-password`, `POST /reset-password`
-  - `GET /google`, `GET /google/callback`
 
 Responses: `{ "success": true, "message": "...", "data": ... }` or `{ "success": false, "message": "..." }`.
 

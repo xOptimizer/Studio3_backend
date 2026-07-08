@@ -94,13 +94,3 @@ def forget_password():
 def reset_password():
     data, status, cookie_ops = auth_controller.reset_password()
     return _respond(PASSWORD_RESET_SUCCESS, data, status, cookie_ops)
-
-
-@auth_bp.get("/google")
-def google_redirect():
-    return auth_controller.google_redirect()
-
-
-@auth_bp.get("/google/callback")
-def google_callback():
-    return auth_controller.google_callback()

@@ -13,6 +13,8 @@ from src.shared.utils.rate_limit import rate_limit_user
 from src.modules.auth.auth_dao import find_user_by_username_or_history
 from src.modules.user.user_dao import get_user_by_id, update_user_fields, delist_user_pieces
 from src.modules.user.user_serializers import user_to_dict
+from src.modules.pieces.pieces_dao import list_user_pieces
+from src.modules.social import social_dao
 
 
 def get_me():
@@ -21,7 +23,7 @@ def get_me():
         user = get_user_by_id(db, uuid.UUID(g.user["id"]))
         if not user:
             raise AppError("User not found.", 404)
-        return user_to_dict(user), 200
+        return user_to_dict(db, user, viewer_id=user.id), 200
     finally:
         db.close()
 
@@ -54,7 +56,7 @@ def patch_me():
                 validate_user_media_url(user.username, url)
             fields["cover_photo_url"] = url
         user = update_user_fields(db, user, **fields)
-        return user_to_dict(user), 200
+        return user_to_dict(db, user, viewer_id=user.id), 200
     finally:
         db.close()
 
@@ -75,7 +77,7 @@ def patch_username():
         user = change_username(db, user, new_username)
         if old_username != user.username:
             migrate_user_prefix(db, user.id, old_username, user.username)
-        return user_to_dict(user), 200
+        return user_to_dict(db, user, viewer_id=user.id), 200
     finally:
         db.close()
 
@@ -86,7 +88,8 @@ def get_public_profile(username: str):
         user, is_redirect = find_user_by_username_or_history(db, username.lower())
         if not user:
             raise AppError("User not found.", 404)
-        data = user_to_dict(user, include_private=False)
+        viewer_id = uuid.UUID(g.user["id"]) if getattr(g, "user", None) else None
+        data = user_to_dict(db, user, include_private=False, viewer_id=viewer_id)
         if is_redirect:
             data["redirectToUsername"] = user.username
         return data, 200
@@ -103,7 +106,7 @@ def patch_role():
     try:
         user = get_user_by_id(db, uuid.UUID(g.user["id"]))
         user = update_user_fields(db, user, role=role)
-        return user_to_dict(user), 200
+        return user_to_dict(db, user, viewer_id=user.id), 200
     finally:
         db.close()
 
@@ -123,7 +126,7 @@ def onboarding_preferences():
             user,
             taste_preferences={"mediums": mediums, "styles": styles, "themes": themes},
         )
-        return user_to_dict(user), 200
+        return user_to_dict(db, user, viewer_id=user.id), 200
     finally:
         db.close()
 
@@ -144,7 +147,7 @@ def onboarding_photos():
             fields["cover_photo_url"] = body["coverPhotoUrl"]
         if fields:
             user = update_user_fields(db, user, **fields)
-        return user_to_dict(user), 200
+        return user_to_dict(db, user, viewer_id=user.id), 200
     finally:
         db.close()
 
@@ -158,7 +161,7 @@ def onboarding_complete():
         if not user.taste_preferences:
             raise AppError("Set your preferences before completing onboarding.", 400)
         user = update_user_fields(db, user, onboarding_complete=True)
-        return user_to_dict(user), 200
+        return user_to_dict(db, user, viewer_id=user.id), 200
     finally:
         db.close()
 
@@ -195,5 +198,21 @@ def seller_status():
     try:
         user = get_user_by_id(db, uuid.UUID(g.user["id"]))
         return {"sellerEnabled": user.seller_enabled, "location": user.location}, 200
+    finally:
+        db.close()
+
+
+def seller_analytics():
+    db = SessionLocal()
+    try:
+        user = get_user_by_id(db, uuid.UUID(g.user["id"]))
+        piece_ids = [p.id for p in list_user_pieces(db, user.id)]
+        return {
+            "savesCount": social_dao.count_saves_for_targets(db, "piece", piece_ids),
+            "likesCount": social_dao.count_likes_for_targets(db, "piece", piece_ids),
+            "inquiriesCount": None,
+            "salesCount": None,
+            "period": "all_time",
+        }, 200
     finally:
         db.close()
