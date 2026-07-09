@@ -14,6 +14,7 @@ Python Flask backend for **Studiothree Discover** (mobile + web). PostgreSQL (SQ
 - **PostgreSQL** – `psycopg2-binary`
 - **Redis** – sessions, OTP
 - **JWT** – access tokens; refresh token in httpOnly cookie
+- **boto3 / S3** – media presign uploads (images + video); dev-mode placeholder URLs when unconfigured
 - **Gunicorn** – production WSGI
 
 ## Env
@@ -50,12 +51,23 @@ project_root/
 │   ├── middlewares/       # error_handler, auth_middleware (JWT + Redis session)
 │   ├── shared/
 │   │   ├── config/         # database.py, redis_client.py
-│   │   ├── models/         # SQLAlchemy models (users, accounts, sessions, refresh_tokens, password_reset_tokens)
-│   │   ├── utils/          # AppError, api_response, messages, jwt_utils, logger
+│   │   ├── models/         # SQLAlchemy models (users, accounts, sessions, refresh_tokens,
+│   │   │                    # password_reset_tokens, username_history, pieces, posts,
+│   │   │                    # follows/likes/comments/saves/collections, series/series_pieces)
+│   │   ├── utils/          # AppError, api_response, messages, jwt_utils, logger, rate_limit, async_handler
+│   │   ├── storage/        # s3_client, s3_paths, s3_service (presign, media URL validation)
+│   │   ├── username/       # normalize, validate, allocate, claim, blocklist, suggest
 │   │   ├── notification/  # email_service
 │   │   └── templates/     # OTP, password-reset HTML
 │   └── modules/
 │       ├── auth/           # auth_routes, auth_controller, auth_dao, services (OTP, password_reset)
+│       ├── user/            # profile, onboarding, seller mode/analytics, saved pieces, public content routes
+│       ├── media/           # presign upload controller
+│       ├── pieces/          # pieces_routes, pieces_controller, pieces_dao
+│       ├── posts/           # posts_routes, posts_controller, posts_dao
+│       ├── social/          # follow/like/save/comments (social_routes, social_controller, social_dao)
+│       ├── feeds/           # following/explore/for-you, cursor pagination
+│       ├── series/          # series_routes, series_controller, series_dao
 │       └── sessions/       # session_service (Redis), refresh_token_dao
 ├── alembic/
 │   ├── env.py
@@ -67,13 +79,15 @@ project_root/
 ## API
 
 - **Health:** `GET /` → `{ "message": "Studiothree Discover API running" }`
-- **Auth** (`/api/auth`):
-  - `POST /otp/generate`, `POST /otp/resend` – body `{ "email" }`
-  - `POST /register` – body `{ "name", "email", "password", "otp" }`
-  - `POST /login` – body `{ "email", "password" }`
-  - `POST /refresh` – cookie `refreshToken`
-  - `POST /logout`, `POST /logout-all` (protected)
-  - `POST /forget-password`, `POST /reset-password`
+- **Auth** (`/api/auth`): OTP generate/resend, register (`phone` optional), login, refresh, logout, logout-all, forget/reset password, username availability check
+- **User** (`/api/user`): profile get/update, username change, role/onboarding, seller enable/disable/status/analytics, saved pieces, public profile by username
+- **Media** (`/api/media`): S3 presign (image + video)
+- **Pieces / Posts** (`/api/pieces`, `/api/posts`): create/edit/detail (enriched with author, likes, comments, series), comments GET, related posts
+- **Social** (`/api`): follow/unfollow, like/unlike, save/unsave, comment create
+- **Feeds** (`/api/feed`): following, explore, for-you — cursor-paginated
+- **Series** (`/api/series`, `/api/users/:username/series`): group a user's pieces into a series
+
+Full endpoint reference with request/response shapes: [`docs/API.md`](docs/API.md).
 
 Responses: `{ "success": true, "message": "...", "data": ... }` or `{ "success": false, "message": "..." }`.
 
