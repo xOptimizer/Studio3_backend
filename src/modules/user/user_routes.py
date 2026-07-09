@@ -9,6 +9,8 @@ from src.shared.utils.async_handler import async_handler
 from src.modules.user import user_controller
 from src.modules.media import media_controller
 from src.modules.pieces import pieces_controller
+from src.modules.addresses import addresses_controller
+from src.modules.orders import orders_controller
 
 user_bp = Blueprint("user", __name__)
 media_bp = Blueprint("media", __name__)
@@ -112,6 +114,78 @@ def seller_analytics():
 @async_handler
 def saved_pieces():
     data, status = pieces_controller.list_saved_for_me(uuid.UUID(g.user["id"]))
+    return _ok("OK", data, status)
+
+
+@user_bp.post("/me/devices")
+@auth_required
+@async_handler
+def register_device():
+    data, status = user_controller.register_device()
+    return _ok("Device registered.", data, status)
+
+
+@user_bp.delete("/me/devices")
+@auth_required
+@async_handler
+def unregister_device():
+    data, status = user_controller.unregister_device()
+    return _ok("Device unregistered.", data, status)
+
+
+@user_bp.get("/me/addresses")
+@auth_required
+@async_handler
+def list_addresses():
+    data, status = addresses_controller.list_for_me()
+    return _ok("OK", data, status)
+
+
+@user_bp.post("/me/addresses")
+@auth_required
+@async_handler
+def create_address():
+    data, status = addresses_controller.create()
+    return _ok("Address saved.", data, status)
+
+
+@user_bp.patch("/me/addresses/<address_id>")
+@auth_required
+@async_handler
+def patch_address(address_id):
+    data, status = addresses_controller.patch(address_id)
+    return _ok("Address updated.", data, status)
+
+
+@user_bp.delete("/me/addresses/<address_id>")
+@auth_required
+@async_handler
+def delete_address(address_id):
+    data, status = addresses_controller.delete(address_id)
+    return _ok("Address deleted.", data, status)
+
+
+@user_bp.post("/me/addresses/<address_id>/default")
+@auth_required
+@async_handler
+def set_default_address(address_id):
+    data, status = addresses_controller.set_default(address_id)
+    return _ok("Default address set.", data, status)
+
+
+@user_bp.get("/me/orders")
+@auth_required
+@async_handler
+def my_orders():
+    data, status = orders_controller.list_my_orders()
+    return _ok("OK", data, status)
+
+
+@user_bp.get("/me/sales")
+@auth_required
+@async_handler
+def my_sales():
+    data, status = orders_controller.list_my_sales()
     return _ok("OK", data, status)
 
 

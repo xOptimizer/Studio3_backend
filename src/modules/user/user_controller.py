@@ -15,6 +15,7 @@ from src.modules.user.user_dao import get_user_by_id, update_user_fields, delist
 from src.modules.user.user_serializers import user_to_dict
 from src.modules.pieces.pieces_dao import list_user_pieces
 from src.modules.social import social_dao
+from src.modules.user import device_dao
 
 
 def get_me():
@@ -55,6 +56,12 @@ def patch_me():
             if url:
                 validate_user_media_url(user.username, url)
             fields["cover_photo_url"] = url
+        if "latitude" in body or "longitude" in body:
+            lat, lng = body.get("latitude"), body.get("longitude")
+            if (lat is None) != (lng is None):
+                raise AppError("Both latitude and longitude are required together.", 400)
+            fields["latitude"] = lat
+            fields["longitude"] = lng
         user = update_user_fields(db, user, **fields)
         return user_to_dict(db, user, viewer_id=user.id), 200
     finally:
@@ -203,6 +210,9 @@ def seller_status():
 
 
 def seller_analytics():
+    from src.modules.orders import orders_dao
+    from src.modules.inquiries import inquiries_dao
+
     db = SessionLocal()
     try:
         user = get_user_by_id(db, uuid.UUID(g.user["id"]))
@@ -210,9 +220,91 @@ def seller_analytics():
         return {
             "savesCount": social_dao.count_saves_for_targets(db, "piece", piece_ids),
             "likesCount": social_dao.count_likes_for_targets(db, "piece", piece_ids),
-            "inquiriesCount": None,
-            "salesCount": None,
+            "inquiriesCount": inquiries_dao.count_seller_inquiries(db, user.id),
+            "salesCount": orders_dao.count_seller_sales(db, user.id),
             "period": "all_time",
         }, 200
+    finally:
+        db.close()
+
+
+ALLOWED_PLATFORMS = ("ios", "android", "web")
+
+
+def register_device():
+    body = request.get_json() or {}
+    platform = (body.get("platform") or "").strip().lower()
+    push_token = (body.get("pushToken") or "").strip()
+    if platform not in ALLOWED_PLATFORMS:
+        raise AppError(f"platform must be one of: {', '.join(ALLOWED_PLATFORMS)}", 400)
+    if not push_token:
+        raise AppError("pushToken is required.", 400)
+    db = SessionLocal()
+    try:
+        device_dao.upsert_device(db, uuid.UUID(g.user["id"]), platform, push_token)
+        return {"registered": True}, 200
+    finally:
+        db.close()
+
+
+EARTH_RADIUS_KM = 6371.0
+
+
+def nearby_users():
+    from sqlalchemy import func, select
+    from src.shared.models.user import User
+
+    try:
+        lat = float(request.args["lat"])
+        lng = float(request.args["lng"])
+    except (KeyError, ValueError):
+        raise AppError("lat and lng query params are required.", 400)
+    radius_km = float(request.args.get("radiusKm", 50))
+    limit = min(int(request.args.get("limit", 20)), 50)
+
+    db = SessionLocal()
+    try:
+        viewer_id = uuid.UUID(g.user["id"]) if getattr(g, "user", None) else None
+        # Haversine via Postgres native trig functions — no PostGIS extension available
+        # on this instance. Full-table scan (the expression isn't index-usable); fine at
+        # hundreds/low-thousands of sellers. If this becomes slow, add a bounding-box
+        # pre-filter on indexed lat/lng ranges before this, or migrate to real PostGIS.
+        distance_expr = (
+            EARTH_RADIUS_KM
+            * func.acos(
+                func.cos(func.radians(lat))
+                * func.cos(func.radians(User.latitude))
+                * func.cos(func.radians(User.longitude) - func.radians(lng))
+                + func.sin(func.radians(lat)) * func.sin(func.radians(User.latitude))
+            )
+        ).label("distance_km")
+
+        q = (
+            select(User, distance_expr)
+            .where(User.latitude.is_not(None), User.longitude.is_not(None), User.seller_enabled.is_(True))
+            .where(distance_expr <= radius_km)
+            .order_by(distance_expr.asc())
+            .limit(limit)
+        )
+        rows = db.execute(q).all()
+        items = []
+        for user, distance_km in rows:
+            data = user_to_dict(db, user, include_private=False, viewer_id=viewer_id)
+            data["distanceKm"] = round(distance_km, 1)
+            items.append(data)
+        return {"items": items}, 200
+    finally:
+        db.close()
+
+
+def unregister_device():
+    body = request.get_json() or {}
+    push_token = (body.get("pushToken") or "").strip()
+    if not push_token:
+        raise AppError("pushToken is required.", 400)
+    db = SessionLocal()
+    try:
+        device_dao.delete_device_by_token(db, push_token)
+        return {"registered": False}, 200
     finally:
         db.close()

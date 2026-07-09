@@ -2,7 +2,7 @@
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import Column, DateTime, String, Boolean, Text
+from sqlalchemy import Column, DateTime, String, Boolean, Text, Float
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
 
@@ -26,6 +26,8 @@ class User(Base):
     bio = Column(Text, nullable=True)
     location = Column(String(255), nullable=True)
     phone = Column(String(32), nullable=True)
+    latitude = Column(Float, nullable=True)
+    longitude = Column(Float, nullable=True)
     email_verified = Column(Boolean, default=False, nullable=False)
     role = Column(String(32), nullable=True)
     seller_enabled = Column(Boolean, default=False, nullable=False)

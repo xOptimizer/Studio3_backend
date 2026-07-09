@@ -21,6 +21,7 @@ def user_to_dict(
 ) -> dict:
     from src.modules.social import social_dao
     from src.modules.pieces.pieces_dao import list_user_pieces, list_saved_pieces, piece_to_dict
+    from src.modules.orders import orders_dao
 
     data = {
         "username": user.username,
@@ -38,7 +39,7 @@ def user_to_dict(
     data["followingCount"] = social_dao.count_following(db, user.id)
     data["piecesCount"] = len(list_user_pieces(db, user.id))
     data["savesCount"] = social_dao.count_user_saves(db, user.id)
-    data["collectedCount"] = 0  # placeholder until Orders domain exists
+    data["collectedCount"] = orders_dao.count_buyer_collected(db, user.id)
     data["isFollowing"] = social_dao.user_follows(db, viewer_id, user.id) if viewer_id else False
 
     # Flutter client documented fallback aliases (see BACKEND_API_README.md)

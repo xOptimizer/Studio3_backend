@@ -1,11 +1,13 @@
 """Public user content listings (pieces, posts)."""
 from flask import Blueprint
 
+from src.middlewares.auth_middleware import optional_auth
 from src.shared.utils.api_response import success_response
 from src.shared.utils.async_handler import async_handler
 from src.modules.pieces import pieces_controller
 from src.modules.posts import posts_controller
 from src.modules.series import series_controller
+from src.modules.user import user_controller
 
 users_bp = Blueprint("users", __name__)
 
@@ -13,6 +15,14 @@ users_bp = Blueprint("users", __name__)
 def _ok(message, data, status=200):
     resp, _ = success_response(message, data, status)
     return resp, status
+
+
+@users_bp.get("/nearby")
+@optional_auth
+@async_handler
+def nearby():
+    data, status = user_controller.nearby_users()
+    return _ok("OK", data, status)
 
 
 @users_bp.get("/<username>/pieces")

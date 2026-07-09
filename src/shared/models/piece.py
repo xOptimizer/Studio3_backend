@@ -35,7 +35,7 @@ class Piece(Base):
     framing_mounting = Column(Text, nullable=True)
     provenance = Column(Text, nullable=True)
     handling_notes = Column(Text, nullable=True)
-    status = Column(String(32), default="live", nullable=False)  # draft|live|sold|delisted
+    status = Column(String(32), default="live", nullable=False)  # draft|live|sold|delisted|reserved
     deleted_at = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), nullable=False, default=utc_now)
     updated_at = Column(DateTime(timezone=True), nullable=False, default=utc_now, onupdate=utc_now)

@@ -3,7 +3,7 @@ import uuid
 
 from flask import Blueprint, g
 
-from src.middlewares.auth_middleware import onboarding_required, optional_auth
+from src.middlewares.auth_middleware import onboarding_required, optional_auth, auth_required
 from src.shared.utils.api_response import success_response
 from src.shared.utils.async_handler import async_handler
 from src.modules.pieces import pieces_controller
@@ -47,3 +47,21 @@ def related_posts(piece_id):
     from src.modules.posts import posts_controller
     data, status = posts_controller.related_for_piece(piece_id)
     return _ok("OK", data, status)
+
+
+@pieces_bp.get("/<piece_id>/shipping-quote")
+@optional_auth
+@async_handler
+def shipping_quote(piece_id):
+    from src.modules.orders import orders_controller
+    data, status = orders_controller.get_shipping_quote(piece_id)
+    return _ok("OK", data, status)
+
+
+@pieces_bp.post("/<piece_id>/collect")
+@onboarding_required
+@async_handler
+def collect(piece_id):
+    from src.modules.orders import orders_controller
+    data, status = orders_controller.collect(piece_id)
+    return _ok("Order created.", data, status)

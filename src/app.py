@@ -23,6 +23,9 @@ def create_app():
     from src.modules.social.social_routes import social_bp
     from src.modules.feeds.feeds_routes import feeds_bp
     from src.modules.series.series_routes import series_bp
+    from src.modules.notifications.notifications_routes import notifications_bp
+    from src.modules.inquiries.inquiries_routes import inquiries_bp
+    from src.modules.orders.orders_routes import orders_bp
 
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
     app.register_blueprint(user_bp, url_prefix="/api/user")
@@ -33,6 +36,9 @@ def create_app():
     app.register_blueprint(social_bp, url_prefix="/api")
     app.register_blueprint(feeds_bp, url_prefix="/api/feed")
     app.register_blueprint(series_bp, url_prefix="/api/series")
+    app.register_blueprint(notifications_bp, url_prefix="/api/notifications")
+    app.register_blueprint(inquiries_bp, url_prefix="/api/inquiries")
+    app.register_blueprint(orders_bp, url_prefix="/api/orders")
 
     # Health at root
     @app.get("/")

@@ -14,6 +14,8 @@ Python Flask backend for **Studiothree Discover** (mobile + web). PostgreSQL (SQ
 - **PostgreSQL** – `psycopg2-binary`
 - **Redis** – sessions, OTP
 - **JWT** – access tokens; refresh token in httpOnly cookie
+- **boto3 / S3** – media presign uploads (images + video); dev-mode placeholder URLs when unconfigured
+- **firebase-admin** – push notifications (iOS/Android/Web via FCM); skipped (fail-open) when unconfigured
 - **Gunicorn** – production WSGI
 
 ## Env
@@ -22,7 +24,7 @@ Python Flask backend for **Studiothree Discover** (mobile + web). PostgreSQL (SQ
 - **`.env.development`** – when `FLASK_ENV=development`
 - **`.env.production`** – when `FLASK_ENV=production`
 
-Copy `.env.example` and set `DATABASE_URL`, `REDIS_URL`, `JWT_SECRET`, `SECRET_KEY` (and SMTP if used).
+Copy `.env.example` and set `DATABASE_URL`, `REDIS_URL`, `JWT_SECRET`, `SECRET_KEY` (and SMTP / Firebase / Stripe if used — Firebase and Stripe are both optional today: push sends fail open when unconfigured, and checkout auto-confirms in dev mode until `STRIPE_SECRET_KEY` is set).
 
 ## Setup
 
@@ -50,30 +52,54 @@ project_root/
 │   ├── middlewares/       # error_handler, auth_middleware (JWT + Redis session)
 │   ├── shared/
 │   │   ├── config/         # database.py, redis_client.py
-│   │   ├── models/         # SQLAlchemy models (users, accounts, sessions, refresh_tokens, password_reset_tokens)
-│   │   ├── utils/          # AppError, api_response, messages, jwt_utils, logger
-│   │   ├── notification/  # email_service
+│   │   ├── models/         # SQLAlchemy models: users, accounts, sessions, refresh_tokens,
+│   │   │                    # password_reset_tokens, username_history, pieces, posts,
+│   │   │                    # follows/likes/comments/saves/collections, series/series_pieces,
+│   │   │                    # notifications, devices, inquiries/inquiry_messages,
+│   │   │                    # addresses, orders/order_items
+│   │   ├── utils/          # AppError, api_response, messages, jwt_utils, logger, rate_limit, async_handler
+│   │   ├── storage/        # s3_client, s3_paths, s3_service (presign, media URL validation)
+│   │   ├── username/       # normalize, validate, allocate, claim, blocklist, suggest
+│   │   ├── notification/  # email_service, push_service (FCM)
 │   │   └── templates/     # OTP, password-reset HTML
 │   └── modules/
 │       ├── auth/           # auth_routes, auth_controller, auth_dao, services (OTP, password_reset)
+│       ├── user/            # profile, onboarding, seller mode/analytics, saved pieces,
+│       │                     # devices, public content routes, geo "nearby" query
+│       ├── media/           # presign upload controller
+│       ├── pieces/          # pieces_routes, pieces_controller, pieces_dao
+│       ├── posts/           # posts_routes, posts_controller, posts_dao
+│       ├── social/          # follow/like/save/comments (social_routes, social_controller, social_dao)
+│       ├── feeds/           # following/explore/for-you, cursor pagination
+│       ├── series/          # series_routes, series_controller, series_dao
+│       ├── notifications/   # activity feed + read state (notifications_dao/controller/routes)
+│       ├── inquiries/        # structured piece-scoped chat threads
+│       ├── addresses/        # saved address book (Zomato/Swiggy-style)
+│       ├── orders/           # checkout lifecycle, shipping quote, devMode confirm
 │       └── sessions/       # session_service (Redis), refresh_token_dao
 ├── alembic/
 │   ├── env.py
 │   ├── script.py.mako
-│   └── versions/
+│   └── versions/           # 001–014; see docs/API.md for the current endpoint contract
 └── .env.development / .env.production / .env.example
 ```
 
 ## API
 
 - **Health:** `GET /` → `{ "message": "Studiothree Discover API running" }`
-- **Auth** (`/api/auth`):
-  - `POST /otp/generate`, `POST /otp/resend` – body `{ "email" }`
-  - `POST /register` – body `{ "name", "email", "password", "otp" }`
-  - `POST /login` – body `{ "email", "password" }`
-  - `POST /refresh` – cookie `refreshToken`
-  - `POST /logout`, `POST /logout-all` (protected)
-  - `POST /forget-password`, `POST /reset-password`
+- **Auth** (`/api/auth`): OTP generate/resend, register (`phone` optional), login, refresh, logout, logout-all, forget/reset password, username availability check
+- **User** (`/api/user`): profile get/update (incl. `latitude`/`longitude`), username change, role/onboarding, seller enable/disable/status/analytics, saved pieces, device push-token register/unregister, address book CRUD, order/sales history, public profile by username
+- **Media** (`/api/media`): S3 presign (image + video)
+- **Pieces / Posts** (`/api/pieces`, `/api/posts`): create/edit/detail (enriched with author, likes, comments, series), comments GET, related posts, shipping quote, checkout (`collect`)
+- **Social** (`/api`): follow/unfollow, like/unlike, save/unsave, comment create — each emits a notification (+ push) to the target's owner
+- **Feeds** (`/api/feed`): following, explore, for-you — cursor-paginated
+- **Series** (`/api/series`, `/api/users/:username/series`): group a user's pieces into a series
+- **Notifications** (`/api/notifications`): activity feed, read state, unread count
+- **Inquiries** (`/api/inquiries`): structured, piece-scoped buyer↔seller chat threads (not open DMs)
+- **Orders** (`/api/orders`): checkout lifecycle (`pending_payment → paid → shipped → completed`/`cancelled`) — real payment capture (Stripe) not yet integrated; `confirm` auto-succeeds in dev mode until `STRIPE_SECRET_KEY` is set
+- **Geo discovery**: `GET /api/users/nearby` — haversine-based "sellers near me" (no PostGIS on this Postgres instance)
+
+Full endpoint reference with request/response shapes: [`docs/API.md`](docs/API.md).
 
 Responses: `{ "success": true, "message": "...", "data": ... }` or `{ "success": false, "message": "..." }`.
 

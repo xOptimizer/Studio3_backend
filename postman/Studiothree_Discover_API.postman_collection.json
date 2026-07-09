@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "7f8b9e6a-1c5d-4f3b-8d2e-9c7b0a8e1d2f",
     "name": "Studiothree Discover API",
-    "description": "Postman collection for the Studiothree Discover backend (Phases 1–5). Import and set collection variables: baseUrl, accessToken, username, pieceId, postId, seriesId.",
+    "description": "Postman collection for the Studiothree Discover backend (Phases 1–6). Import and set collection variables: baseUrl, accessToken, username, pieceId, postId, seriesId, addressId, orderId.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -334,7 +334,7 @@
           "request": {
             "method": "GET",
             "url": "{{baseUrl}}/api/user/me/seller/analytics",
-            "description": "Returns savesCount/likesCount aggregated across the seller's pieces. salesCount/inquiriesCount are null until Orders/Inquiries domains exist."
+            "description": "Returns savesCount/likesCount aggregated across the seller's pieces, salesCount (completed orders), and inquiriesCount (inquiry threads received)."
           }
         },
         {
@@ -343,6 +343,124 @@
             "method": "GET",
             "url": "{{baseUrl}}/api/user/me/saved/pieces",
             "description": "Pieces the current user has saved, enriched with author/isLiked/isSaved/series/relatedPosts."
+          }
+        },
+        {
+          "name": "Register Device",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"platform\": \"android\",\n  \"pushToken\": \"{{pushToken}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/user/me/devices",
+            "description": "Upsert by pushToken (reassigns ownership if the token was previously registered to a different user, e.g. shared device)."
+          }
+        },
+        {
+          "name": "Unregister Device",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pushToken\": \"{{pushToken}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/user/me/devices"
+          }
+        },
+        {
+          "name": "List Addresses",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/user/me/addresses"
+          }
+        },
+        {
+          "name": "Create Address",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.data && json.data.id) {",
+                  "  pm.collectionVariables.set('addressId', json.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"label\": \"Home\",\n  \"firstName\": \"Jane\",\n  \"lastName\": \"Doe\",\n  \"phone\": \"+12145551234\",\n  \"line1\": \"123 Main St\",\n  \"line2\": \"Apt 4B\",\n  \"city\": \"Dallas\",\n  \"state\": \"TX\",\n  \"zip\": \"75201\",\n  \"country\": \"US\",\n  \"latitude\": 32.7767,\n  \"longitude\": -96.7970\n}"
+            },
+            "url": "{{baseUrl}}/api/user/me/addresses",
+            "description": "latitude/longitude come from the client's map picker; the backend never geocodes."
+          }
+        },
+        {
+          "name": "Update Address",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"line2\": \"Suite 200\"\n}"
+            },
+            "url": "{{baseUrl}}/api/user/me/addresses/{{addressId}}"
+          }
+        },
+        {
+          "name": "Set Default Address",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/user/me/addresses/{{addressId}}/default"
+          }
+        },
+        {
+          "name": "Delete Address",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/api/user/me/addresses/{{addressId}}"
+          }
+        },
+        {
+          "name": "Nearby Sellers",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/users/nearby?lat=32.7767&lng=-96.7970&radiusKm=50&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "nearby"],
+              "query": [
+                { "key": "lat", "value": "32.7767" },
+                { "key": "lng", "value": "-96.7970" },
+                { "key": "radiusKm", "value": "50" },
+                { "key": "limit", "value": "20" }
+              ]
+            },
+            "description": "Haversine-based distance query (no PostGIS) — returns sellers with lat/lng set, ordered by distance. Send Bearer for viewer-specific isFollowing."
+          }
+        },
+        {
+          "name": "My Orders",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/user/me/orders"
+          }
+        },
+        {
+          "name": "My Sales",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/user/me/sales"
           }
         }
       ]
@@ -436,6 +554,41 @@
             "auth": { "type": "noauth" },
             "method": "GET",
             "url": "{{baseUrl}}/api/users/{{username}}/pieces/for-sale"
+          }
+        },
+        {
+          "name": "Shipping Quote",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": "{{baseUrl}}/api/pieces/{{pieceId}}/shipping-quote"
+          }
+        },
+        {
+          "name": "Collect (Checkout)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.data && json.data.id) {",
+                  "  pm.collectionVariables.set('orderId', json.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"addressId\": \"{{addressId}}\",\n  \"shippingMethod\": \"standard\"\n}"
+            },
+            "url": "{{baseUrl}}/api/pieces/{{pieceId}}/collect",
+            "description": "Creates a pending_payment order, reserves the piece, snapshots the address. clientSecret is null until a payment provider is wired up."
           }
         }
       ]
@@ -756,6 +909,186 @@
           }
         }
       ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "List Notifications",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/notifications?limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "notifications"],
+              "query": [
+                { "key": "limit", "value": "20" },
+                { "key": "cursor", "value": "", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Unread Count",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/notifications/unread-count"
+          }
+        },
+        {
+          "name": "Mark Notification Read",
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/api/notifications/{{notificationId}}/read"
+          }
+        },
+        {
+          "name": "Mark All Read",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/notifications/read-all"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Inquiries",
+      "item": [
+        {
+          "name": "List Inbox",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/inquiries?limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inquiries"],
+              "query": [
+                { "key": "limit", "value": "20" },
+                { "key": "cursor", "value": "", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Inquiry",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.data && json.data.id) {",
+                  "  pm.collectionVariables.set('inquiryId', json.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pieceId\": \"{{pieceId}}\",\n  \"message\": \"Hi, is this piece still available?\"\n}"
+            },
+            "url": "{{baseUrl}}/api/inquiries",
+            "description": "Returns { id, reused: true } with 200 if an open thread already exists for this buyer+piece, else creates one and returns 201."
+          }
+        },
+        {
+          "name": "Get Thread",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/inquiries/{{inquiryId}}?limit=50",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inquiries", "{{inquiryId}}"],
+              "query": [
+                { "key": "limit", "value": "50" },
+                { "key": "cursor", "value": "", "disabled": true }
+              ]
+            },
+            "description": "Auto-marks the caller's read state on fetch."
+          }
+        },
+        {
+          "name": "Reply",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"body\": \"Yes, it's still available!\"\n}"
+            },
+            "url": "{{baseUrl}}/api/inquiries/{{inquiryId}}/messages"
+          }
+        },
+        {
+          "name": "Mark Thread Read",
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/api/inquiries/{{inquiryId}}/read"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Orders",
+      "item": [
+        {
+          "name": "Confirm Order (devMode pay)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/orders/{{orderId}}/confirm",
+            "description": "With no STRIPE_SECRET_KEY configured, auto-succeeds: order -> paid, piece -> sold, both parties notified. Response includes devMode: true."
+          }
+        },
+        {
+          "name": "Get Order",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/orders/{{orderId}}"
+          }
+        },
+        {
+          "name": "Seller: Mark Shipped",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"shipped\"\n}"
+            },
+            "url": "{{baseUrl}}/api/orders/{{orderId}}"
+          }
+        },
+        {
+          "name": "Seller: Mark Completed",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"completed\"\n}"
+            },
+            "url": "{{baseUrl}}/api/orders/{{orderId}}"
+          }
+        },
+        {
+          "name": "Cancel Order",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"cancelled\"\n}"
+            },
+            "url": "{{baseUrl}}/api/orders/{{orderId}}",
+            "description": "Buyer or seller; only from pending_payment/paid. Releases the piece back to live."
+          }
+        }
+      ]
     }
   ],
   "variable": [
@@ -765,6 +1098,11 @@
     { "key": "pieceId", "value": "", "type": "string" },
     { "key": "postId", "value": "", "type": "string" },
     { "key": "seriesId", "value": "", "type": "string" },
-    { "key": "feedCursor", "value": "", "type": "string" }
+    { "key": "feedCursor", "value": "", "type": "string" },
+    { "key": "pushToken", "value": "sample-fcm-token", "type": "string" },
+    { "key": "addressId", "value": "", "type": "string" },
+    { "key": "notificationId", "value": "", "type": "string" },
+    { "key": "inquiryId", "value": "", "type": "string" },
+    { "key": "orderId", "value": "", "type": "string" }
   ]
 }

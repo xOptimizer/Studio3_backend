@@ -9,6 +9,11 @@ from src.shared.models.piece import Piece
 from src.shared.models.post import Post
 from src.shared.models.social import Follow, Like, Comment, Collection, CollectionItem, Save
 from src.shared.models.series import Series, SeriesPiece
+from src.shared.models.notification import Notification
+from src.shared.models.device import Device
+from src.shared.models.inquiry import Inquiry, InquiryMessage
+from src.shared.models.address import Address
+from src.shared.models.order import Order, OrderItem
 
 __all__ = [
     "User",
@@ -27,4 +32,11 @@ __all__ = [
     "Save",
     "Series",
     "SeriesPiece",
+    "Notification",
+    "Device",
+    "Inquiry",
+    "InquiryMessage",
+    "Address",
+    "Order",
+    "OrderItem",
 ]

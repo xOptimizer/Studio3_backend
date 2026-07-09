@@ -8,10 +8,19 @@ from sqlalchemy import select
 from src.shared.config.database import SessionLocal
 from src.shared.models.social import Follow, Like, Comment, Save, Collection, CollectionItem
 from src.shared.models.user import User
+from src.shared.models.piece import Piece
+from src.shared.models.post import Post
 from src.shared.utils.app_error import AppError
 from src.modules.auth.auth_dao import find_user_by_username
 from src.modules.user.user_dao import get_user_by_id
 from src.modules.social import social_dao
+from src.modules.notifications import notifications_dao
+
+
+def _get_target_owner_id(db, target_type: str, target_id):
+    model = Piece if target_type == "piece" else Post
+    row = db.get(model, target_id)
+    return row.user_id if row else None
 
 
 def follow(username: str):
@@ -28,6 +37,17 @@ def follow(username: str):
             return {"following": True}, 200
         db.add(Follow(id=uuid.uuid4(), follower_id=me.id, following_id=target.id))
         db.commit()
+        notifications_dao.create_and_push(
+            db,
+            user_id=target.id,
+            type="follow",
+            actor_id=me.id,
+            target_type="user",
+            target_id=me.id,
+            payload={"followerUsername": me.username, "followerName": me.name},
+            title="New follower",
+            body=f"{me.name} started following you",
+        )
         return {"following": True}, 200
     finally:
         db.close()
@@ -56,6 +76,19 @@ def _toggle_like(target_type: str, target_id: str, like: bool):
             if not q.first():
                 db.add(Like(id=uuid.uuid4(), user_id=me.id, target_type=target_type, target_id=tid))
                 db.commit()
+                owner_id = _get_target_owner_id(db, target_type, tid)
+                if owner_id and owner_id != me.id:
+                    notifications_dao.create_and_push(
+                        db,
+                        user_id=owner_id,
+                        type="like",
+                        actor_id=me.id,
+                        target_type=target_type,
+                        target_id=tid,
+                        payload={"likerUsername": me.username, "likerName": me.name},
+                        title="New like",
+                        body=f"{me.name} liked your {target_type}",
+                    )
             return {"liked": True}, 200
         q.delete()
         db.commit()
@@ -90,6 +123,19 @@ def save_target(target_type: str, target_id: str):
             return {"saved": True}, 200
         db.add(Save(id=uuid.uuid4(), user_id=me.id, target_type=target_type, target_id=tid))
         db.commit()
+        owner_id = _get_target_owner_id(db, target_type, tid)
+        if owner_id and owner_id != me.id:
+            notifications_dao.create_and_push(
+                db,
+                user_id=owner_id,
+                type="save",
+                actor_id=me.id,
+                target_type=target_type,
+                target_id=tid,
+                payload={"saverUsername": me.username, "saverName": me.name},
+                title="New save",
+                body=f"{me.name} saved your {target_type}",
+            )
         return {"saved": True}, 200
     finally:
         db.close()
@@ -125,6 +171,19 @@ def add_comment(target_type: str, target_id: str):
         )
         db.add(comment)
         db.commit()
+        owner_id = _get_target_owner_id(db, target_type, comment.target_id)
+        if owner_id and owner_id != me.id:
+            notifications_dao.create_and_push(
+                db,
+                user_id=owner_id,
+                type="comment",
+                actor_id=me.id,
+                target_type=target_type,
+                target_id=comment.target_id,
+                payload={"commentPreview": text[:140], "commenterUsername": me.username},
+                title="New comment",
+                body=f"{me.name} commented: {text[:100]}",
+            )
         return {
             "id": str(comment.id),
             "body": comment.body,
