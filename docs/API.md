@@ -2,6 +2,8 @@
 
 For the **Studiothree Discover** backend. Use this doc to build and test requests in Postman and to integrate from mobile (iOS/Android) or web clients.
 
+**Terminology:** UI **Scenes** map to the API `posts` resource (`/api/posts`, feed `type: "post"`, presign `purpose: "post"`).
+
 ---
 
 ## Postman setup
@@ -129,17 +131,32 @@ Authorization: Bearer {{accessToken}}
 
 `collectedCount` is the number of pieces this user has successfully bought (orders in `paid`/`shipped`/`completed` status — see [Orders](#orders--checkout--addresses)); `pending_payment`/`cancelled` orders don't count. The `user` object also includes legacy alias keys the client's fallback parser accepts: `following`, `followers`, `pieces`, `saves`, `collected`, `isSeller`, `saved` (mirroring the canonical keys). Errors: `400` (validation/invalid OTP), `409` (username/email taken).
 
-### Auth – Login / Refresh / Logout / Logout-all
+### Auth – Login
 
-- **POST** `/api/auth/login` — `{ "username", "password" }`. Same response shape as Register.
-- **POST** `/api/auth/refresh` — cookie only, no body. New access token + refresh cookie.
+**POST** `{{baseUrl}}/api/auth/login`
+
+```json
+{ "username": "maya_art", "password": "securePassword123" }
+```
+
+The `username` field accepts **either a username or an email address** (detected by the presence of `@`). Example with email:
+
+```json
+{ "username": "maya@example.com", "password": "securePassword123" }
+```
+
+Same response shape as Register. Errors: `400` (missing fields), `401` (invalid credentials).
+
+### Auth – Refresh / Logout / Logout-all
+
+- **POST** `/api/auth/refresh` — cookie only, no body. Returns new `accessToken` + refresh cookie. `401` if cookie missing/invalid/expired.
 - **POST** `/api/auth/logout` — cookie only. Clears refresh cookie.
-- **POST** `/api/auth/logout-all` — Bearer required. Revokes all sessions.
+- **POST** `/api/auth/logout-all` — Bearer required. Revokes all sessions. `401` if not authenticated.
 
 ### Auth – Forget / Reset password
 
 - **POST** `/api/auth/forget-password` — `{ "email" }`.
-- **POST** `/api/auth/reset-password` — `{ "token", "newPassword" }`.
+- **POST** `/api/auth/reset-password` — `{ "token", "newPassword" }`. `400` if token invalid/expired or `newPassword` missing.
 
 ---
 
@@ -147,14 +164,14 @@ Authorization: Bearer {{accessToken}}
 
 ### Get me / Update me (protected)
 
-**GET** `{{baseUrl}}/api/user/me` — full profile: `username`, `name`, `email`, `phone`, `bio`, `location`, `profilePhotoUrl`, `coverPhotoUrl`, `role`, `sellerEnabled`, `onboardingComplete`, `emailVerified`, `canChangeUsername`, `tastePreferences`, `lastUsernameChangeAt`, counts (`followersCount`/`followingCount`/`piecesCount`/`savesCount`/`collectedCount`), `isFollowing` (always `false` for self), `savedPieces` (first 20, enriched — see [Pieces](#pieces--posts)), plus the legacy alias keys described above.
+**GET** `{{baseUrl}}/api/user/me` — Bearer required. Full profile: `username`, `name`, `email`, `phone`, `bio`, `location`, `profilePhotoUrl`, `coverPhotoUrl`, `role`, `sellerEnabled`, `onboardingComplete`, `emailVerified`, `canChangeUsername`, `tastePreferences`, `lastUsernameChangeAt`, counts (`followersCount`/`followingCount`/`piecesCount`/`savesCount`/`collectedCount`), `isFollowing` (always `false` for self), `savedPieces` (first 20, enriched — see [Pieces](#pieces)). Also includes the legacy alias keys `following`/`followers`/`pieces`/`saves`/`collected`/`isSeller`/`saved` for backward-compatible client parsing.
 
 **PATCH** `{{baseUrl}}/api/user/me` — body: `{ "name"?, "bio"?, "location"?, "profilePhotoUrl"?, "coverPhotoUrl"?, "latitude"?, "longitude"? }`. `latitude`/`longitude` are optional — both-or-neither (400 if only one is sent); used for [seller "near me" discovery](#geo-near-me-discovery).
 
 ### Change username / Public profile
 
-- **PATCH** `/api/user/me/username` — `{ "username" }`. 30-day cooldown.
-- **GET** `/api/user/:username` — Optional Bearer (populates `isFollowing`). Public subset only (no email/phone/tastePreferences/savedPieces). Supports `redirectToUsername` for renamed handles.
+- **PATCH** `/api/user/me/username` — `{ "username" }`. 30-day cooldown between changes.
+- **GET** `/api/user/:username` — Optional Bearer (populates `isFollowing`; omitted/anonymous gets `isFollowing: false`). Public subset only (no `email`/`phone`/`tastePreferences`/`savedPieces`). Supports `redirectToUsername` for renamed handles.
 
 ### Onboarding (protected)
 
@@ -178,11 +195,12 @@ Authorization: Bearer {{accessToken}}
 ```json
 { "data": { "savesCount": 42, "likesCount": 128, "inquiriesCount": 7, "salesCount": 3, "period": "all_time" } }
 ```
-`inquiriesCount` is the number of inquiry threads received on this seller's pieces (see [Inquiries](#inquiries)). `salesCount` is the number of completed sales (orders in `paid`/`shipped`/`completed` status, see [Orders](#orders--checkout--addresses)).
+`savesCount`/`likesCount` aggregate across all of the caller's pieces. `inquiriesCount` is the number of inquiry threads received (see [Inquiries](#inquiries)). `salesCount` is the number of completed sales (orders in `paid`/`shipped`/`completed` status, see [Orders](#orders--checkout--addresses)).
 
-### Saved pieces (protected)
+### Saved pieces / Saved scenes (protected)
 
-**GET** `{{baseUrl}}/api/user/me/saved/pieces` — pieces the caller has saved, each enriched like `GET /api/pieces/:id`.
+- **GET** `{{baseUrl}}/api/user/me/saved/pieces` — pieces the caller has saved, each enriched like `GET /api/pieces/:id`.
+- **GET** `{{baseUrl}}/api/user/me/saved/posts` — scenes the caller has saved, each enriched like `GET /api/posts/:id`.
 
 ### Devices (push notifications, protected)
 
@@ -231,13 +249,13 @@ Distance computed via the haversine formula in raw SQL (no PostGIS on this Postg
 { "purpose": "profile" | "cover" | "piece" | "post", "contentType": "image/jpeg", "pieceId": "optional", "postId": "optional" }
 ```
 
-`contentType`: `image/jpeg`, `image/png`, `image/webp` (max 20MB), or `video/mp4` (max 100MB, supported for any purpose). Response: `{ "presignedPutUrl", "url", "key", "devMode" }` — `devMode: true` when S3 isn't configured (local dev placeholder).
+`contentType`: `image/jpeg`, `image/png`, `image/webp` (max 20MB), or `video/mp4` (max 100MB) — video is supported for any purpose. Response: `{ "presignedPutUrl", "url", "key", "devMode" }` — upload to `presignedPutUrl`, then pass `url` when creating/updating content. `devMode: true` when S3 isn't configured (local dev) — `presignedPutUrl` is `null` and `url` is a placeholder.
 
 ---
 
-## Pieces & posts
+## Pieces & Scenes
 
-Create/edit require completed onboarding. Detail (`GET /:id`) routes accept an **optional** Bearer token — send one for viewer-specific `isLiked`/`isSaved`/`author.isFollowing`; omit for anonymous (all default `false`).
+Create/edit routes require completed onboarding (`onboardingComplete: true`). Detail (`GET /:id`) routes accept an **optional** Bearer token (`optional_auth`) — send one for viewer-specific `isLiked`/`isSaved`/`author.isFollowing`; omit for anonymous (those fields default to `false`).
 
 ### Pieces
 
@@ -246,13 +264,13 @@ Create/edit require completed onboarding. Detail (`GET /:id`) routes accept an *
 | POST | `/api/pieces` | Bearer | Create; sale fields require seller mode |
 | GET | `/api/pieces/:id` | Optional Bearer | Enriched detail |
 | PATCH | `/api/pieces/:id` | Bearer | Edit, toggle sale |
-| GET | `/api/pieces/:id/related-posts` | — | Posts linked to piece |
-| GET | `/api/pieces/:id/comments` | — | Cursor-paginated |
+| GET | `/api/pieces/:id/related-posts` | — | Scenes linked to piece |
+| GET | `/api/pieces/:id/comments` | — | Cursor-paginated comment thread |
 | GET | `/api/pieces/:id/shipping-quote` | Optional Bearer | See [Orders](#orders--checkout--addresses) |
 | POST | `/api/pieces/:id/collect` | Bearer + onboarding | Checkout — see [Orders](#orders--checkout--addresses) |
 | GET | `/api/users/:username/pieces` | — | Profile Work tab |
 | GET | `/api/users/:username/pieces/for-sale` | — | For Sale tab |
-| GET | `/api/user/me/saved/pieces` | Bearer | See [User](#saved-pieces-protected) |
+| GET | `/api/user/me/saved/pieces` | Bearer | See [User](#saved-pieces--saved-scenes-protected) |
 
 **Create piece body:**
 ```json
@@ -264,9 +282,9 @@ Create/edit require completed onboarding. Detail (`GET /:id`) routes accept an *
   "handlingNotes": "Keep away from direct sunlight", "materials": ["oil", "canvas"], "styleTags": ["abstract"]
 }
 ```
-`yearCreated`/`framingMounting`/`provenance`/`handlingNotes` are first-class optional fields. `PATCH` accepts the same set plus `status` (`draft|live|sold|delisted|reserved` — `reserved`/`sold` are set automatically by checkout, not client-settable in normal use).
+`yearCreated`/`framingMounting`/`provenance`/`handlingNotes` are first-class optional fields (replace the old caption-JSON workaround). `materials[]`/`styleTags[]`/`aiDisclosed`/`altText` are also accepted on create and returned on every piece response. `PATCH` accepts the same field set plus `status` (`draft|live|sold|delisted|reserved` — `reserved`/`sold` are set automatically by checkout, not client-settable in normal use).
 
-**Get piece response** — all create fields plus:
+**Get piece response** (`GET /api/pieces/:id`) — all create fields plus:
 ```json
 {
   "status": "live", "createdAt": "...",
@@ -276,38 +294,51 @@ Create/edit require completed onboarding. Detail (`GET /:id`) routes accept an *
   "relatedPosts": []
 }
 ```
-`series` is `null` if the piece isn't in one.
+`series` is `null` if the piece doesn't belong to one. `GET /api/user/me/saved/pieces` and `GET /api/users/:username/pieces` / `.../pieces/for-sale` return arrays of this same enriched shape (list endpoints under `/api/users/:username/*` are unauthenticated, so `isLiked`/`isSaved`/`author.isFollowing` are always `false` there).
 
-### Posts
+### Scenes (API: posts)
+
+UI **Scenes** map to the `posts` resource. Scenes may be **image** or **video** (`mediaType`) and are not collectible (no sale fields).
 
 | Method | URL | Auth | Notes |
 |--------|-----|------|-------|
-| POST | `/api/posts` | Bearer | WIP/process — no sale fields |
+| POST | `/api/posts` | Bearer | Create scene (image or video) |
 | GET | `/api/posts/:id` | Optional Bearer | Enriched detail |
 | PATCH | `/api/posts/:id` | Bearer | Edit, link/unlink piece |
-| GET | `/api/posts/:id/comments` | — | Cursor-paginated |
-| GET | `/api/users/:username/posts` | — | Profile Process tab |
+| GET | `/api/posts/:id/comments` | — | Cursor-paginated comment thread |
+| GET | `/api/users/:username/posts` | — | Profile **Scenes** tab |
+| GET | `/api/user/me/saved/posts` | Bearer | Saved scenes |
 
-**Get post response** — base fields (`id`, `userId`, `mediaUrl`, `mediaType`, `caption`, `isProcess`, `linkedPieceId`, `status`, `createdAt`) plus `author`, `likeCount`, `commentCount`, `isLiked`, `isSaved`, and `piece` (full linked piece, or `null`).
+**Create scene body:** `{ "mediaUrl", "mediaType": "image"|"video", "caption"?, "linkedPieceId"? }` — `mediaType` must be `image` or `video`; `isProcess` defaults to `false` when omitted.
+
+**Get scene response** (`GET /api/posts/:id`) — base fields (`id`, `userId`, `mediaUrl`, `mediaType`, `caption`, `isProcess`, `linkedPieceId`, `status`, `createdAt`) plus enrichment: `author`, `likeCount`, `commentCount`, `isLiked`, `isSaved`, and `piece` (full linked piece, or `null`).
 
 ---
 
 ## Social
 
-Like/save/comment-create/follow require Bearer + onboarding. Comment **reads** are public.
+Like/save/comment-create/follow mutation routes require Bearer + completed onboarding. Comment **reads** are public (no auth).
 
 | Method | URL | Notes |
 |--------|-----|-------|
 | POST/DELETE | `/api/users/:username/follow` | Follow/unfollow |
-| POST/DELETE | `/api/pieces/:id/like`, `/api/posts/:id/like` | — |
-| POST/DELETE | `/api/pieces/:id/save`, `/api/posts/:id/save` | — |
+| POST/DELETE | `/api/pieces/:id/like`, `/api/posts/:id/like` | Like/unlike piece or scene |
+| POST/DELETE | `/api/pieces/:id/save`, `/api/posts/:id/save` | Save/unsave piece or scene |
 | POST | `/api/pieces/:id/comments`, `/api/posts/:id/comments` | `{ "body" }` |
 | GET | `/api/pieces/:id/comments`, `/api/posts/:id/comments` | Query: `cursor?`, `limit?` (default 50, max 100) |
 
 **Get comments response:**
 ```json
-{ "data": { "items": [{ "id", "body", "author": {...}, "createdAt" }], "nextCursor": "..." } }
+{
+  "data": {
+    "items": [
+      { "id": "uuid", "body": "Beautiful work!", "author": { "username": "alex_chen", "name": "Alex Chen", "profilePhotoUrl": "https://..." }, "createdAt": "2026-07-08T12:00:00Z" }
+    ],
+    "nextCursor": "2026-07-08T11:00:00+00:00"
+  }
+}
 ```
+Pass `nextCursor` back as `?cursor=` to fetch the next (older) page; `null` when there are no more comments.
 
 Follow/like/save/comment each emit a [notification](#notifications) (with push) to the target's owner — skipped for self-actions.
 
@@ -317,32 +348,37 @@ Follow/like/save/comment each emit a [notification](#notifications) (with push) 
 
 | Method | URL | Auth | Description |
 |--------|-----|------|--------------|
-| GET | `/api/feed/following` | Bearer + onboarding | Pieces+posts from followed users |
-| GET | `/api/feed/explore` | Optional Bearer | Public pieces; `?medium=` filter |
-| GET | `/api/feed/for-you` | Bearer + onboarding | Stub wrapping explore |
+| GET | `/api/feed/following` | Bearer + onboarding | Chronological pieces + scenes from followed users |
+| GET | `/api/feed/explore` | Optional Bearer | Recent public pieces + scenes; `?medium=painting` filters pieces by medium; `?medium=video` returns video scenes only |
+| GET | `/api/feed/for-you` | Bearer + onboarding | Stub wrapping explore (full personalization engine deferred) |
 
-All cursor-paginated: `?cursor=&limit=` (default 20, max 50).
+All three are cursor-paginated: `?cursor=&limit=` (default 20, max 50). Response:
 ```json
-{ "data": { "items": [{ "type": "piece"|"post", "...": "enriched fields" }], "nextCursor": "..." } }
+{ "data": { "items": [{ "type": "piece"|"post", "...": "full enriched piece or scene fields (author, likeCount, isLiked, isSaved)" }], "nextCursor": "<opaque-cursor-string-or-null>" } }
 ```
-`explore` returns pieces only. Anonymous requests get `isLiked`/`isSaved`/`author.isFollowing` defaulted `false`.
+`type` is `"piece"` or `"post"`. Default `explore` (no `medium`) returns pieces and scenes merged by recency; `?medium=<piece medium>` returns pieces of that medium only; `?medium=video` returns video scenes only. Pass `nextCursor` back as `?cursor=` for the next page; `null` means no more items. Anonymous requests get `isLiked`/`isSaved`/`author.isFollowing` defaulted to `false`; send a Bearer token for viewer-specific values.
 
 ---
 
 ## Series
 
-Piece grouping for the profile "Series" tab. Mutations require Bearer + onboarding; reads are public. A piece belongs to at most one series.
+Piece grouping for an artist's profile "Series" tab. Mutation routes require Bearer + completed onboarding; reads are public. A piece belongs to at most one series — adding it to a second series is rejected with `400`.
 
-| Method | URL | Body |
-|--------|-----|------|
-| GET | `/api/users/:username/series` | — (only `pieceCount > 1`) |
-| GET | `/api/series/:id` | — |
-| POST | `/api/series` | `{ "name", "pieceIds"?: [] }` |
-| PATCH | `/api/series/:id` | `{ "name"?, "pieceOrder"?: [pieceId,...] }` |
-| POST | `/api/series/:id/pieces` | `{ "pieceId" }` |
-| DELETE | `/api/series/:id/pieces/:pieceId` | — |
+| Method | URL | Auth | Body |
+|--------|-----|------|------|
+| GET | `/api/users/:username/series` | — | — (only series with `pieceCount > 1` are returned) |
+| GET | `/api/series/:id` | — | — |
+| POST | `/api/series` | Bearer | `{ "name": "...", "pieceIds"?: ["..."] }` |
+| PATCH | `/api/series/:id` | Bearer | `{ "name"?: "...", "pieceOrder"?: ["pieceId", ...] }` |
+| POST | `/api/series/:id/pieces` | Bearer | `{ "pieceId": "..." }` |
+| DELETE | `/api/series/:id/pieces/:pieceId` | Bearer | — |
 
-**Series object:** list — `{ id, name, pieceCount, previewPieces: [{id,mediaUrl,title}] }`; detail (and mutation responses) — same plus `pieceIds: [...]`.
+**Series object** (list — `GET /api/users/:username/series`):
+```json
+{ "id": "uuid", "name": "Riverwalk Dream", "pieceCount": 3, "previewPieces": [{ "id": "...", "mediaUrl": "...", "title": "..." }] }
+```
+
+**Series detail** (`GET /api/series/:id`, and `create`/`patch`/`add-piece`/`remove-piece` responses) — same shape plus `pieceIds: ["...", "...", "..."]` (full ordered list, matches the `series` field embedded in piece detail).
 
 ---
 
@@ -363,7 +399,7 @@ General activity feed. Every entry may also trigger a push via [Devices](#device
   "data": {
     "items": [{
       "id": "uuid", "type": "save"|"follow"|"inquiry"|"purchase"|"like"|"comment",
-      "actor": { "username", "name", "profilePhotoUrl" } ,
+      "actor": { "username", "name", "profilePhotoUrl" },
       "target": { "type": "piece"|"post"|"order"|"inquiry"|"user", "id": "uuid" },
       "payload": { "...": "type-specific pre-rendered fields" },
       "message": "saved your piece", "read": false, "createdAt": "..."
@@ -414,7 +450,7 @@ Flat global rates — no carrier integration.
 
 **POST** `{{baseUrl}}/api/pieces/:id/collect` — Bearer + onboarding. Body: `{ "addressId", "shippingMethod" }`.
 
-Validates the piece is for-sale and `status == "live"` (else `409`), the caller isn't the seller (`400`), the address belongs to the caller (`404`), and the method is valid (`400`). Computes `artworkCents`/`shippingCents`/`taxCents` (flat 8.25% placeholder, server-side) /`totalCents`, creates the order, snapshots the chosen address (edits to the saved address later never change this), and reserves the piece (`status → "reserved"`, so it disappears from sale listings immediately). Response:
+Validates the piece is for-sale and `status == "live"` (else `409`), the caller isn't the seller (`400`), the address belongs to the caller (`404`), and the method is valid (`400`). Computes `artworkCents`/`shippingCents`/`taxCents` (flat 8.25% placeholder, server-side)/`totalCents`, creates the order, snapshots the chosen address (edits to the saved address later never change this), and reserves the piece (`status → "reserved"`, so it disappears from sale listings immediately). Response:
 ```json
 { "data": { "id", "status": "pending_payment", "artworkCents", "shippingCents", "taxCents", "totalCents", "shippingAddress": {...}, "items": [...], "clientSecret": null } }
 ```
@@ -443,31 +479,41 @@ Validates the piece is for-sale and `status == "live"` (else `409`), the caller 
 
 ## Quick reference
 
-| Method | URL | Auth |
-|--------|-----|------|
-| GET | `{{baseUrl}}/` | — |
-| POST | `{{baseUrl}}/api/auth/{register,login,refresh,logout,logout-all,otp/generate,otp/resend,forget-password,reset-password}` | Varies |
-| GET | `{{baseUrl}}/api/auth/username/check` | Optional |
-| GET/PATCH | `{{baseUrl}}/api/user/me` | Bearer |
-| PATCH | `{{baseUrl}}/api/user/me/username` \| `/role` | Bearer |
-| GET | `{{baseUrl}}/api/user/:username` | Optional |
-| GET | `{{baseUrl}}/api/users/nearby` | Optional |
-| POST | `{{baseUrl}}/api/user/me/onboarding/*` | Bearer |
-| POST/GET | `{{baseUrl}}/api/user/me/seller/*` | Bearer |
-| GET | `{{baseUrl}}/api/user/me/saved/pieces` \| `/orders` \| `/sales` | Bearer |
-| POST/GET/PATCH/DELETE | `{{baseUrl}}/api/user/me/addresses/*` | Bearer |
-| POST/DELETE | `{{baseUrl}}/api/user/me/devices` | Bearer |
-| POST | `{{baseUrl}}/api/media/presign` | Bearer |
-| POST/PATCH/GET | `{{baseUrl}}/api/pieces/*` | Varies |
-| GET/POST | `{{baseUrl}}/api/pieces/:id/{comments,shipping-quote,collect,related-posts}` | Varies |
-| POST/PATCH/GET | `{{baseUrl}}/api/posts/*` | Varies |
-| GET | `{{baseUrl}}/api/users/:username/{pieces,posts,series}` | — |
-| POST/DELETE | `{{baseUrl}}/api/users/:username/follow` | Bearer |
-| POST/DELETE | `{{baseUrl}}/api/pieces/:id/{like,save}` | Bearer |
-| GET | `{{baseUrl}}/api/feed/{following,explore,for-you}` | Varies |
-| POST/PATCH/GET/DELETE | `{{baseUrl}}/api/series/*` | Varies |
-| GET/PATCH/POST | `{{baseUrl}}/api/notifications/*` | Bearer |
-| GET/POST/PATCH | `{{baseUrl}}/api/inquiries/*` | Bearer |
-| GET/PATCH/POST | `{{baseUrl}}/api/orders/*` | Bearer |
+| Method | URL | Auth | Body |
+|--------|-----|------|------|
+| GET | `{{baseUrl}}/` | — | — |
+| GET | `{{baseUrl}}/api/auth/username/check` | Optional | Query: `username`, `for_user_id=me` |
+| POST | `{{baseUrl}}/api/auth/otp/generate` \| `/otp/resend` | — | `{ "email" }` |
+| POST | `{{baseUrl}}/api/auth/register` | — | `{ "username", "name", "email", "password", "otp", "phone"? }` |
+| POST | `{{baseUrl}}/api/auth/login` | — | `{ "username", "password" }` — `username` accepts username or email |
+| POST | `{{baseUrl}}/api/auth/refresh` | Cookie | — |
+| POST | `{{baseUrl}}/api/auth/logout` | Cookie | — |
+| POST | `{{baseUrl}}/api/auth/logout-all` | Bearer | — |
+| POST | `{{baseUrl}}/api/auth/forget-password` | — | `{ "email" }` |
+| POST | `{{baseUrl}}/api/auth/reset-password` | — | `{ "token", "newPassword" }` |
+| GET/PATCH | `{{baseUrl}}/api/user/me` | Bearer | Profile fields incl. `latitude`/`longitude` |
+| PATCH | `{{baseUrl}}/api/user/me/username` \| `/role` | Bearer | — |
+| GET | `{{baseUrl}}/api/user/:username` | Optional Bearer | — |
+| GET | `{{baseUrl}}/api/users/nearby` | Optional Bearer | Query: `lat`, `lng`, `radiusKm?`, `limit?` |
+| POST | `{{baseUrl}}/api/user/me/onboarding/*` | Bearer | See above |
+| POST/GET | `{{baseUrl}}/api/user/me/seller/*` | Bearer | See above |
+| GET | `{{baseUrl}}/api/user/me/saved/pieces` \| `/saved/posts` \| `/orders` \| `/sales` | Bearer | — |
+| GET/POST/PATCH/DELETE | `{{baseUrl}}/api/user/me/addresses/*` | Bearer | See above |
+| POST/DELETE | `{{baseUrl}}/api/user/me/devices` | Bearer | `{ "platform", "pushToken" }` |
+| POST | `{{baseUrl}}/api/media/presign` | Bearer | `{ "purpose", "contentType" }` |
+| POST/PATCH/GET | `{{baseUrl}}/api/pieces/*` | Varies | See above |
+| GET/POST | `{{baseUrl}}/api/pieces/:id/{comments,shipping-quote,collect,related-posts}` | Varies | See above |
+| POST/PATCH/GET | `{{baseUrl}}/api/posts/*` | Varies | See above |
+| GET | `{{baseUrl}}/api/posts/:id/comments` | — | Query: `cursor?`, `limit?` |
+| GET | `{{baseUrl}}/api/users/:username/{pieces,posts,series}` | — | — |
+| POST/DELETE | `{{baseUrl}}/api/users/:username/follow` | Bearer | — |
+| POST/DELETE | `{{baseUrl}}/api/pieces/:id/{like,save}` \| `/api/posts/:id/{like,save}` | Bearer | — |
+| GET | `{{baseUrl}}/api/feed/following` | Bearer | Query: `cursor?`, `limit?` |
+| GET | `{{baseUrl}}/api/feed/explore` | Optional Bearer | Query: `medium?`, `cursor?`, `limit?` |
+| GET | `{{baseUrl}}/api/feed/for-you` | Bearer | Query: `cursor?`, `limit?` |
+| POST/PATCH/GET/DELETE | `{{baseUrl}}/api/series/*` | Varies | See above |
+| GET/PATCH/POST | `{{baseUrl}}/api/notifications/*` | Bearer | See above |
+| GET/POST/PATCH | `{{baseUrl}}/api/inquiries/*` | Bearer | See above |
+| GET/PATCH/POST | `{{baseUrl}}/api/orders/*` | Bearer | See above |
 
-**Auth column:** "Bearer" = `Authorization: Bearer {{accessToken}}` required; "Optional" = works without a token, returns viewer-specific fields when one is sent; "Cookie" = sent automatically by Postman after login/register/refresh.
+**Auth column:** "Bearer" = `Authorization: Bearer {{accessToken}}` required; "Optional Bearer" = works without a token but returns viewer-specific fields (`isLiked`/`isSaved`/`isFollowing`) when one is sent; "Cookie" = sent automatically by Postman after login/register/refresh.

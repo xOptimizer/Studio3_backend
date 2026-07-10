@@ -135,9 +135,16 @@ def explore_feed():
     db = SessionLocal()
     try:
         piece_query = select(Piece).where(Piece.deleted_at.is_(None), Piece.status == "live")
-        if medium:
+        post_query = select(Post).where(Post.deleted_at.is_(None), Post.status == "live")
+
+        if medium == "video":
+            piece_query = None
+            post_query = post_query.where(Post.media_type.in_(("video", "reel", "reels")))
+        elif medium:
+            post_query = None
             piece_query = piece_query.where(Piece.medium == medium)
-        return _paginated_response(db, piece_query, None, viewer_id), 200
+
+        return _paginated_response(db, piece_query, post_query, viewer_id), 200
     finally:
         db.close()
 

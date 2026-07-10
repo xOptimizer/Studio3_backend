@@ -87,10 +87,10 @@ project_root/
 ## API
 
 - **Health:** `GET /` → `{ "message": "Studiothree Discover API running" }`
-- **Auth** (`/api/auth`): OTP generate/resend, register (`phone` optional), login, refresh, logout, logout-all, forget/reset password, username availability check
-- **User** (`/api/user`): profile get/update (incl. `latitude`/`longitude`), username change, role/onboarding, seller enable/disable/status/analytics, saved pieces, device push-token register/unregister, address book CRUD, order/sales history, public profile by username
+- **Auth** (`/api/auth`): OTP generate/resend, register (`phone` optional), login (username or email), refresh, logout, logout-all, forget/reset password, username availability check
+- **User** (`/api/user`): profile get/update (incl. `latitude`/`longitude`), username change, role/onboarding, seller enable/disable/status/analytics, saved pieces/scenes, device push-token register/unregister, address book CRUD, order/sales history, public profile by username
 - **Media** (`/api/media`): S3 presign (image + video)
-- **Pieces / Posts** (`/api/pieces`, `/api/posts`): create/edit/detail (enriched with author, likes, comments, series), comments GET, related posts, shipping quote, checkout (`collect`)
+- **Pieces / Posts** (`/api/pieces`, `/api/posts`): create/edit/detail (enriched with author, likes, comments, series), comments GET, related posts, shipping quote, checkout (`collect`) — UI "Scenes" map to the `posts` resource
 - **Social** (`/api`): follow/unfollow, like/unlike, save/unsave, comment create — each emits a notification (+ push) to the target's owner
 - **Feeds** (`/api/feed`): following, explore, for-you — cursor-paginated
 - **Series** (`/api/series`, `/api/users/:username/series`): group a user's pieces into a series

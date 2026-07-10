@@ -12,6 +12,7 @@ from src.shared.utils.app_error import AppError
 from src.shared.utils.messages import (
     OTP_VERIFICATION_FAILED,
     EMAIL_REQUIRED,
+    LOGIN_IDENTIFIER_REQUIRED,
     USERNAME_REQUIRED,
     NAME_REQUIRED,
     PASSWORD_REQUIRED,
@@ -29,7 +30,12 @@ from src.shared.username.normalize import normalize
 from src.shared.username.availability import check_availability, invalidate_username_cache
 from src.shared.notification.email_service import send_email
 from src.shared.templates.otp_template import get_otp_html
-from src.modules.auth.auth_dao import find_user_by_email, find_user_by_username, create_user
+from src.modules.auth.auth_dao import (
+    find_user_by_email,
+    find_user_by_username,
+    find_user_by_username_or_history,
+    create_user,
+)
 from src.modules.auth.services.otp_service import (
     acquire_lock,
     check_resend_limit,
@@ -207,20 +213,23 @@ def register():
 
 def login():
     body = request.get_json() or {}
-    username_raw = (body.get("username") or "").strip()
+    identifier_raw = (body.get("username") or "").strip()
     password = body.get("password")
-    if not username_raw:
-        raise AppError(USERNAME_REQUIRED, 400)
+    if not identifier_raw:
+        raise AppError(LOGIN_IDENTIFIER_REQUIRED, 400)
     if not password:
         raise AppError(PASSWORD_REQUIRED, 400)
 
-    norm = normalize(username_raw)
-    if not norm.ok or not norm.normalized:
-        raise AppError(INVALID_CREDENTIALS, 401)
-
     db = SessionLocal()
     try:
-        user = find_user_by_username(db, norm.normalized)
+        if "@" in identifier_raw:
+            user = find_user_by_email(db, identifier_raw.lower())
+        else:
+            norm = normalize(identifier_raw)
+            if not norm.ok or not norm.normalized:
+                raise AppError(INVALID_CREDENTIALS, 401)
+            user, _ = find_user_by_username_or_history(db, norm.normalized)
+
         if not user or not user.password:
             raise AppError(INVALID_CREDENTIALS, 401)
         if not _verify_password(password, user.password):

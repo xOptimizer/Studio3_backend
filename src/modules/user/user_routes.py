@@ -11,6 +11,7 @@ from src.modules.media import media_controller
 from src.modules.pieces import pieces_controller
 from src.modules.addresses import addresses_controller
 from src.modules.orders import orders_controller
+from src.modules.posts import posts_controller
 
 user_bp = Blueprint("user", __name__)
 media_bp = Blueprint("media", __name__)
@@ -186,6 +187,14 @@ def my_orders():
 @async_handler
 def my_sales():
     data, status = orders_controller.list_my_sales()
+    return _ok("OK", data, status)
+
+
+@user_bp.get("/me/saved/posts")
+@auth_required
+@async_handler
+def saved_posts():
+    data, status = posts_controller.list_saved_for_me(uuid.UUID(g.user["id"]))
     return _ok("OK", data, status)
 
 
