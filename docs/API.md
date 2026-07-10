@@ -2,6 +2,8 @@
 
 For the **Studiothree Discover** backend. Use this doc to build and test requests in Postman and to integrate from mobile (iOS/Android) or web clients.
 
+**Terminology:** UI **Scenes** map to the API `posts` resource (`/api/posts`, feed `type: "post"`, presign `purpose: "post"`).
+
 ---
 
 
@@ -257,9 +259,20 @@ Use **Tests** script from “Saving the access token” to set `accessToken`. Er
 | **Headers** | `Content-Type: application/json` |
 | **Body** | raw JSON |
 
+The `username` field accepts **username or email**.
+
 ```json
 {
   "username": "maya_art",
+  "password": "securePassword123"
+}
+```
+
+Email example:
+
+```json
+{
+  "username": "maya@example.com",
   "password": "securePassword123"
 }
 ```
@@ -468,6 +481,10 @@ Error: `400` if token invalid/expired or `newPassword` missing.
 
 **GET** `{{baseUrl}}/api/user/me/saved/pieces` — Pieces the current user has saved, each enriched the same way as `GET /api/pieces/:id` below (`author`, `series`, `relatedPosts`, `likeCount`, `commentCount`, `isLiked`, `isSaved`).
 
+### User – Saved scenes (protected)
+
+**GET** `{{baseUrl}}/api/user/me/saved/posts` — Scenes the current user has saved, each enriched the same way as `GET /api/posts/:id` below.
+
 ---
 
 ## Media
@@ -491,9 +508,11 @@ Error: `400` if token invalid/expired or `newPassword` missing.
 
 ---
 
-## Pieces & posts
+## Pieces & scenes
 
 Create/edit routes require completed onboarding (`onboardingComplete: true`). Detail (`GET /:id`) routes accept an **optional** Bearer token (`optional_auth`) — send one to get viewer-specific `isLiked`/`isSaved`/`author.isFollowing`; omit it for anonymous access (those fields default to `false`).
+
+UI **Scenes** map to the API `posts` resource (see product terminology in Content Model & Posting Workflow).
 
 ### Pieces
 
@@ -502,7 +521,7 @@ Create/edit routes require completed onboarding (`onboardingComplete: true`). De
 | POST | `/api/pieces` | Bearer | Create piece; sale fields require seller mode |
 | GET | `/api/pieces/:id` | Optional Bearer | Enriched detail |
 | PATCH | `/api/pieces/:id` | Bearer | Edit, toggle sale |
-| GET | `/api/pieces/:id/related-posts` | — | Posts linked to piece |
+| GET | `/api/pieces/:id/related-posts` | — | Scenes linked to piece |
 | GET | `/api/pieces/:id/comments` | — | Cursor-paginated comment thread |
 | GET | `/api/users/:username/pieces` | — | Profile Work tab |
 | GET | `/api/users/:username/pieces/for-sale` | — | For Sale tab |
@@ -562,17 +581,26 @@ Create/edit routes require completed onboarding (`onboardingComplete: true`). De
 
 `series` is `null` if the piece doesn't belong to one. `GET /api/user/me/saved/pieces` and `GET /api/users/:username/pieces` / `.../pieces/for-sale` return arrays of this same enriched shape (list endpoints under `/api/users/:username/*` are unauthenticated, so `isLiked`/`isSaved`/`author.isFollowing` are always `false` there).
 
-### Posts
+### Scenes (API: posts)
+
+UI **Scenes** map to the `posts` resource. Scenes may be **image** or **video** (`mediaType`). They are not collectible.
 
 | Method | URL | Auth | Notes |
 |--------|-----|------|-------|
-| POST | `/api/posts` | Bearer | WIP/process only — no sale fields |
+| POST | `/api/posts` | Bearer | Create scene (image or video); no sale fields |
 | GET | `/api/posts/:id` | Optional Bearer | Enriched detail |
 | PATCH | `/api/posts/:id` | Bearer | Edit, link/unlink piece |
 | GET | `/api/posts/:id/comments` | — | Cursor-paginated comment thread |
-| GET | `/api/users/:username/posts` | — | Profile Process tab |
+| GET | `/api/users/:username/posts` | — | Profile **Scenes** tab |
+| GET | `/api/user/me/saved/posts` | Bearer | Saved scenes |
 
-**Get post response** (`GET /api/posts/:id`) — base fields (`id`, `userId`, `mediaUrl`, `mediaType`, `caption`, `isProcess`, `linkedPieceId`, `status`, `createdAt`) plus the same enrichment pattern as pieces: `author`, `likeCount`, `commentCount`, `isLiked`, `isSaved`, and `piece` (the full linked piece object when `linkedPieceId` is set, else `null`).
+**Create scene (image):** `{ "mediaUrl", "mediaType": "image", "caption"? }`
+
+**Create scene (video):** `{ "mediaUrl", "mediaType": "video", "caption"? }`
+
+`mediaType` must be `image` or `video`. `isProcess` defaults to `false` when omitted.
+
+**Get scene response** (`GET /api/posts/:id`) — base fields (`id`, `userId`, `mediaUrl`, `mediaType`, `caption`, `isProcess`, `linkedPieceId`, `status`, `createdAt`) plus enrichment: `author`, `likeCount`, `commentCount`, `isLiked`, `isSaved`, and `piece` (linked piece when set).
 
 ---
 
@@ -586,12 +614,12 @@ Like/save/comment-create/follow mutation routes require Bearer + completed onboa
 | DELETE | `/api/users/:username/follow` | Unfollow |
 | POST | `/api/pieces/:id/like` | Like piece |
 | DELETE | `/api/pieces/:id/like` | Unlike piece |
-| POST | `/api/posts/:id/like` | Like post |
-| DELETE | `/api/posts/:id/like` | Unlike post |
+| POST | `/api/posts/:id/like` | Like scene |
+| DELETE | `/api/posts/:id/like` | Unlike scene |
 | POST | `/api/pieces/:id/save` | Save piece |
 | DELETE | `/api/pieces/:id/save` | Unsave piece |
-| POST | `/api/posts/:id/save` | Save post |
-| DELETE | `/api/posts/:id/save` | Unsave post |
+| POST | `/api/posts/:id/save` | Save scene |
+| DELETE | `/api/posts/:id/save` | Unsave scene |
 | POST | `/api/pieces/:id/comments` | Body: `{ "body": "..." }` |
 | POST | `/api/posts/:id/comments` | Body: `{ "body": "..." }` |
 | GET | `/api/pieces/:id/comments` | Query: `cursor?`, `limit?` (default 50, max 100) |
@@ -623,8 +651,8 @@ Pass `nextCursor` back as `?cursor=` to fetch the next (older) page. `nextCursor
 
 | Method | URL | Auth | Description |
 |--------|-----|------|-------------|
-| GET | `/api/feed/following` | Bearer + onboarding | Chronological pieces + posts from followed users |
-| GET | `/api/feed/explore` | Optional Bearer | Recent public pieces; `?medium=painting` filter |
+| GET | `/api/feed/following` | Bearer + onboarding | Chronological pieces + scenes from followed users |
+| GET | `/api/feed/explore` | Optional Bearer | Recent public pieces + scenes; `?medium=painting` filters pieces; `?medium=video` returns video scenes |
 | GET | `/api/feed/for-you` | Bearer + onboarding | Stub: wraps explore (full personalization engine deferred) |
 
 All three are cursor-paginated: query params `?cursor=` and `?limit=` (default 20, max 50). Response:
@@ -635,7 +663,7 @@ All three are cursor-paginated: query params `?cursor=` and `?limit=` (default 2
     "items": [
       {
         "type": "piece",
-        "...": "full enriched piece or post fields (author, likeCount, isLiked, isSaved)"
+        "...": "full enriched piece or scene fields (author, likeCount, isLiked, isSaved)"
       }
     ],
     "nextCursor": "<opaque-cursor-string-or-null>"
@@ -643,7 +671,7 @@ All three are cursor-paginated: query params `?cursor=` and `?limit=` (default 2
 }
 ```
 
-`type` is `"piece"` or `"post"`. Pass `nextCursor` back as `?cursor=` for the next page; `null` means no more items. `explore` returns pieces only (no posts). Anonymous requests to `explore` get `isLiked`/`isSaved`/`author.isFollowing` defaulted to `false`; send a Bearer token for viewer-specific values.
+`type` is `"piece"` or `"post"`. Pass `nextCursor` back as `?cursor=` for the next page; `null` means no more items. Default `explore` returns **pieces and scenes** merged by recency. `?medium=video` returns video scenes only. Anonymous requests to `explore` get `isLiked`/`isSaved`/`author.isFollowing` defaulted to `false`; send a Bearer token for viewer-specific values.
 
 ---
 
@@ -679,7 +707,7 @@ Piece grouping for an artist's profile "Series" tab. Mutation routes require Bea
 | POST | `{{baseUrl}}/api/auth/otp/generate` | — | `{ "email" }` |
 | POST | `{{baseUrl}}/api/auth/otp/resend` | — | `{ "email" }` |
 | POST | `{{baseUrl}}/api/auth/register` | — | `{ "username", "name", "email", "password", "otp" }` |
-| POST | `{{baseUrl}}/api/auth/login` | — | `{ "username", "password" }` |
+| POST | `{{baseUrl}}/api/auth/login` | — | `{ "username", "password" }` — `username` is username or email |
 | POST | `{{baseUrl}}/api/auth/refresh` | Cookie | — |
 | POST | `{{baseUrl}}/api/auth/logout` | Cookie | — |
 | POST | `{{baseUrl}}/api/auth/logout-all` | Bearer | — |
@@ -694,13 +722,14 @@ Piece grouping for an artist's profile "Series" tab. Mutation routes require Bea
 | POST | `{{baseUrl}}/api/user/me/seller/*` | Bearer | See above |
 | GET | `{{baseUrl}}/api/user/me/seller/analytics` | Bearer | — |
 | GET | `{{baseUrl}}/api/user/me/saved/pieces` | Bearer | — |
+| GET | `{{baseUrl}}/api/user/me/saved/posts` | Bearer | Saved scenes |
 | POST | `{{baseUrl}}/api/media/presign` | Bearer | `{ "purpose", "contentType" }` |
 | POST/PATCH/GET | `{{baseUrl}}/api/pieces/*` | Varies | See above |
 | GET | `{{baseUrl}}/api/pieces/:id/comments` | — | Query: `cursor?`, `limit?` |
 | POST/PATCH/GET | `{{baseUrl}}/api/posts/*` | Varies | See above |
 | GET | `{{baseUrl}}/api/posts/:id/comments` | — | Query: `cursor?`, `limit?` |
 | GET | `{{baseUrl}}/api/users/:username/pieces` | — | — |
-| GET | `{{baseUrl}}/api/users/:username/posts` | — | — |
+| GET | `{{baseUrl}}/api/users/:username/posts` | — | Profile Scenes tab |
 | GET | `{{baseUrl}}/api/users/:username/series` | — | — |
 | POST/PATCH/GET/DELETE | `{{baseUrl}}/api/series/*` | Varies | See above |
 | POST/DELETE | `{{baseUrl}}/api/users/:username/follow` | Bearer | — |

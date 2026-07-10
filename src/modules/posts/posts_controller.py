@@ -15,6 +15,7 @@ from src.modules.posts.posts_dao import (
     get_post,
     list_user_posts,
     list_related_posts,
+    list_saved_posts,
     post_to_dict,
 )
 from src.modules.social import social_dao
@@ -31,6 +32,9 @@ def create():
         if not media_url:
             raise AppError("mediaUrl is required.", 400)
         validate_user_media_url(user.username, media_url)
+        media_type = (body.get("mediaType") or "image").strip().lower()
+        if media_type not in ("image", "video"):
+            raise AppError("mediaType must be image or video.", 400)
         linked = body.get("linkedPieceId")
         linked_uuid = None
         if linked:
@@ -38,13 +42,14 @@ def create():
             if not piece or piece.user_id != user.id:
                 raise AppError("Linked piece not found.", 404)
             linked_uuid = piece.id
+        is_process = body["isProcess"] if "isProcess" in body else False
         post = create_post(
             db,
             user_id=user.id,
             media_url=media_url,
-            media_type=body.get("mediaType", "image"),
+            media_type=media_type,
             caption=body.get("caption"),
-            is_process=bool(body.get("isProcess", True)),
+            is_process=bool(is_process),
             linked_piece_id=linked_uuid,
             status="live",
         )
@@ -118,6 +123,15 @@ def list_for_user(username: str):
             raise AppError("User not found.", 404)
         posts = list_user_posts(db, user.id)
         return [post_to_dict(p) for p in posts], 200
+    finally:
+        db.close()
+
+
+def list_saved_for_me(user_id: uuid.UUID):
+    db = SessionLocal()
+    try:
+        posts = list_saved_posts(db, user_id)
+        return [enrich_post_dict(db, p, user_id) for p in posts], 200
     finally:
         db.close()
 

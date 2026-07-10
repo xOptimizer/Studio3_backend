@@ -9,6 +9,7 @@ from src.shared.utils.async_handler import async_handler
 from src.modules.user import user_controller
 from src.modules.media import media_controller
 from src.modules.pieces import pieces_controller
+from src.modules.posts import posts_controller
 
 user_bp = Blueprint("user", __name__)
 media_bp = Blueprint("media", __name__)
@@ -112,6 +113,14 @@ def seller_analytics():
 @async_handler
 def saved_pieces():
     data, status = pieces_controller.list_saved_for_me(uuid.UUID(g.user["id"]))
+    return _ok("OK", data, status)
+
+
+@user_bp.get("/me/saved/posts")
+@auth_required
+@async_handler
+def saved_posts():
+    data, status = posts_controller.list_saved_for_me(uuid.UUID(g.user["id"]))
     return _ok("OK", data, status)
 
 
