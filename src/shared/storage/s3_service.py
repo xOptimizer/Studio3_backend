@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 from typing import Optional
 
+from flask import request
 from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
@@ -28,15 +29,24 @@ def _validate_content_type(content_type: str, purpose: str) -> None:
     raise AppError(f"Unsupported content type: {content_type}", 400)
 
 
+def _effective_base_url() -> str:
+    """Public base URL for media links; falls back to this server's own
+    local-disk media endpoint when S3 isn't configured (dev)."""
+    base = get_public_base_url()
+    if base:
+        return base
+    return f"{request.host_url.rstrip('/')}/api/media/local"
+
+
 def presign_put(username: str, purpose: str, content_type: str, content_id: str | None = None) -> dict:
     _validate_content_type(content_type, purpose)
     key = build_media_key(username, purpose, content_type, content_id)
-    url = public_url(get_public_base_url(), key)
+    url = public_url(_effective_base_url(), key)
 
     if not s3_configured():
-        # Dev fallback — client can PUT to a local stub or use url as placeholder
+        # Dev fallback — PUT the bytes to this same server's local media store.
         return {
-            "presignedPutUrl": None,
+            "presignedPutUrl": url,
             "url": url,
             "key": key,
             "devMode": True,
@@ -52,7 +62,7 @@ def presign_put(username: str, purpose: str, content_type: str, content_id: str 
 
 
 def validate_user_media_url(username: str, media_url: str) -> None:
-    base = get_public_base_url().rstrip("/")
+    base = _effective_base_url().rstrip("/")
     prefix = f"{base}/{username.lower()}/"
     if not media_url.startswith(prefix):
         raise AppError("Media URL must belong to your account.", 400)
@@ -86,7 +96,7 @@ def migrate_user_prefix(db: Session, user_id, old_username: str, new_username: s
 def _rewrite_urls_db(db: Session, user_id, old_username: str, new_username: str) -> None:
     old_prefix = f"{old_username.lower()}/"
     new_prefix = f"{new_username.lower()}/"
-    base = get_public_base_url().rstrip("/")
+    base = _effective_base_url().rstrip("/")
 
     user = db.get(User, user_id)
     if user:

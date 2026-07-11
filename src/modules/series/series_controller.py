@@ -24,6 +24,15 @@ def list_for_user(username: str):
         db.close()
 
 
+def list_for_me(user_id: uuid.UUID):
+    db = SessionLocal()
+    try:
+        series_list = series_dao.list_user_series(db, user_id)
+        return [series_dao.series_summary_dict(db, s) for s in series_list], 200
+    finally:
+        db.close()
+
+
 def get_detail(series_id: str):
     db = SessionLocal()
     try:

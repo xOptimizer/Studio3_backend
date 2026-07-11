@@ -26,6 +26,9 @@ Thumbs.db
 # Logs
 logs/
 
+# Local dev media fallback (no S3 configured)
+/uploads/
+
 # graphify output (local only — do not push)
 graphify-out/
 .agents/

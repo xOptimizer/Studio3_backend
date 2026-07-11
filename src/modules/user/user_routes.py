@@ -1,9 +1,10 @@
 """User and media routes."""
 import uuid
 
-from flask import Blueprint, g
+from flask import Blueprint, Response, abort, g, request
 
 from src.middlewares.auth_middleware import auth_required, optional_auth
+from src.shared.storage.local_storage import guess_content_type, read_local_file, save_local_file
 from src.shared.utils.api_response import success_response
 from src.shared.utils.async_handler import async_handler
 from src.modules.user import user_controller
@@ -12,6 +13,7 @@ from src.modules.pieces import pieces_controller
 from src.modules.addresses import addresses_controller
 from src.modules.orders import orders_controller
 from src.modules.posts import posts_controller
+from src.modules.series import series_controller
 
 user_bp = Blueprint("user", __name__)
 media_bp = Blueprint("media", __name__)
@@ -107,6 +109,14 @@ def seller_status():
 @async_handler
 def seller_analytics():
     data, status = user_controller.seller_analytics()
+    return _ok("OK", data, status)
+
+
+@user_bp.get("/me/series")
+@auth_required
+@async_handler
+def my_series():
+    data, status = series_controller.list_for_me(uuid.UUID(g.user["id"]))
     return _ok("OK", data, status)
 
 
@@ -212,3 +222,19 @@ def public_profile(username):
 def presign():
     data, status = media_controller.presign()
     return _ok("Presigned URL generated.", data, status)
+
+
+@media_bp.put("/local/<path:key>")
+def upload_local_media(key):
+    """Dev-only stand-in for an S3 presigned PUT when no bucket is configured."""
+    save_local_file(key, request.get_data())
+    return "", 204
+
+
+@media_bp.get("/local/<path:key>")
+def download_local_media(key):
+    """Dev-only stand-in for a public S3 object URL."""
+    data = read_local_file(key)
+    if data is None:
+        abort(404)
+    return Response(data, mimetype=guess_content_type(key))

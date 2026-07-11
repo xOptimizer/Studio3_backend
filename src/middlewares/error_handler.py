@@ -1,5 +1,6 @@
-"""Global exception handler: AppError -> status_code + message; else 500 + generic message."""
+"""Global exception handler: AppError -> status_code + message; HTTPException -> its own status code; else 500 + generic message."""
 from flask import jsonify
+from werkzeug.exceptions import HTTPException
 
 from src.shared.utils.app_error import AppError
 from src.shared.utils.api_response import error_response, internal_error_response
@@ -13,6 +14,10 @@ def register_error_handler(app):
     @app.errorhandler(AppError)
     def handle_app_error(e: AppError):
         return error_response(e.message, e.status_code)
+
+    @app.errorhandler(HTTPException)
+    def handle_http_exception(e: HTTPException):
+        return error_response(e.description or e.name, e.code)
 
     @app.errorhandler(Exception)
     def handle_unhandled(e: Exception):
