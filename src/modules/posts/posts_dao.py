@@ -1,5 +1,6 @@
 """Posts DAO."""
 import uuid
+from datetime import datetime, timezone
 from typing import Optional
 
 from sqlalchemy import select
@@ -54,6 +55,12 @@ def list_saved_posts(db: Session, user_id: uuid.UUID) -> list[Post]:
         .order_by(Save.created_at.desc())
     )
     return list(db.execute(q).scalars().all())
+
+
+def delete_post(db: Session, post: Post) -> None:
+    post.deleted_at = datetime.now(timezone.utc)
+    post.status = "deleted"
+    db.commit()
 
 
 def post_to_dict(post: Post) -> dict:

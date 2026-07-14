@@ -11,6 +11,7 @@ from src.modules.auth.auth_dao import find_user_by_username
 from src.modules.user.user_dao import get_user_by_id
 from src.modules.pieces.pieces_dao import (
     create_piece,
+    delete_piece,
     get_piece,
     list_user_pieces,
     list_saved_pieces,
@@ -141,6 +142,19 @@ def patch(piece_id: str):
         db.commit()
         db.refresh(piece)
         return piece_to_dict(piece), 200
+    finally:
+        db.close()
+
+
+def delete(piece_id: str):
+    db = SessionLocal()
+    try:
+        user = get_user_by_id(db, uuid.UUID(g.user["id"]))
+        piece = get_piece(db, uuid.UUID(piece_id))
+        if not piece or piece.user_id != user.id:
+            raise AppError("Piece not found.", 404)
+        delete_piece(db, piece)
+        return {"deleted": True}, 200
     finally:
         db.close()
 

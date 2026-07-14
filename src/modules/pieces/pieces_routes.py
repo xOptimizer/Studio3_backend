@@ -41,6 +41,14 @@ def patch_piece(piece_id):
     return _ok("Piece updated.", data, status)
 
 
+@pieces_bp.delete("/<piece_id>")
+@onboarding_required
+@async_handler
+def delete_piece(piece_id):
+    data, status = pieces_controller.delete(piece_id)
+    return _ok("Piece deleted.", data, status)
+
+
 @pieces_bp.get("/<piece_id>/related-posts")
 @async_handler
 def related_posts(piece_id):

@@ -39,3 +39,11 @@ def get_post(post_id):
 def patch_post(post_id):
     data, status = posts_controller.patch(post_id)
     return _ok("Post updated.", data, status)
+
+
+@posts_bp.delete("/<post_id>")
+@onboarding_required
+@async_handler
+def delete_post(post_id):
+    data, status = posts_controller.delete(post_id)
+    return _ok("Post deleted.", data, status)

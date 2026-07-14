@@ -38,7 +38,7 @@ def main():
 
     port = int(os.getenv("PORT", 9000))
     try:
-        app.run(host="0.0.0.0", port=port)
+        app.run(host="0.0.0.0", port=port, threaded=True)
     finally:
         close_redis()
 

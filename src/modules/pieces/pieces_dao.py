@@ -46,6 +46,12 @@ def list_saved_pieces(db: Session, user_id: uuid.UUID) -> list[Piece]:
     return list(db.execute(q).scalars().all())
 
 
+def delete_piece(db: Session, piece: Piece) -> None:
+    piece.deleted_at = datetime.now(timezone.utc)
+    piece.status = "deleted"
+    db.commit()
+
+
 def piece_to_dict(piece: Piece) -> dict:
     return {
         "id": str(piece.id),

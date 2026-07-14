@@ -12,6 +12,7 @@ from src.modules.user.user_dao import get_user_by_id
 from src.modules.pieces.pieces_dao import get_piece, piece_to_dict
 from src.modules.posts.posts_dao import (
     create_post,
+    delete_post,
     get_post,
     list_user_posts,
     list_related_posts,
@@ -111,6 +112,19 @@ def patch(post_id: str):
         db.commit()
         db.refresh(post)
         return post_to_dict(post), 200
+    finally:
+        db.close()
+
+
+def delete(post_id: str):
+    db = SessionLocal()
+    try:
+        user = get_user_by_id(db, uuid.UUID(g.user["id"]))
+        post = get_post(db, uuid.UUID(post_id))
+        if not post or post.user_id != user.id:
+            raise AppError("Post not found.", 404)
+        delete_post(db, post)
+        return {"deleted": True}, 200
     finally:
         db.close()
 
