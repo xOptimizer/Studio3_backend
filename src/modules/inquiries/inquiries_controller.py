@@ -13,6 +13,8 @@ from src.modules.user.user_dao import get_user_by_id
 from src.modules.pieces.pieces_dao import get_piece
 from src.modules.inquiries import inquiries_dao
 from src.modules.notifications import notifications_dao
+from src.modules.social import social_dao
+from src.modules.social import block_dao
 
 
 def _encode_cursor(created_at, item_id) -> str:
@@ -47,6 +49,33 @@ def list_inbox():
             last_msg = inquiries_dao.list_messages(db, inquiry.id, limit=1)
             preview = last_msg[0].body[:140] if last_msg else None
             items.append(inquiries_dao.inquiry_to_inbox_dict(inquiry, me_id, piece, other_user, preview))
+        next_cursor = (
+            _encode_cursor(inquiries[-1].last_message_at, inquiries[-1].id)
+            if has_more and inquiries
+            else None
+        )
+        return {"items": items, "nextCursor": next_cursor}, 200
+    finally:
+        db.close()
+
+
+def list_requests():
+    cursor = request.args.get("cursor")
+    limit = min(int(request.args.get("limit", 20)), 50)
+    db = SessionLocal()
+    try:
+        me_id = uuid.UUID(g.user["id"])
+        before = _decode_cursor(cursor) if cursor else None
+        inquiries = inquiries_dao.list_requests(db, me_id, limit=limit + 1, before=before)
+        has_more = len(inquiries) > limit
+        inquiries = inquiries[:limit]
+        items = []
+        for inquiry in inquiries:
+            piece = get_piece(db, inquiry.piece_id)
+            buyer = get_user_by_id(db, inquiry.buyer_id)
+            last_msg = inquiries_dao.list_messages(db, inquiry.id, limit=1)
+            preview = last_msg[0].body[:140] if last_msg else None
+            items.append(inquiries_dao.inquiry_to_inbox_dict(inquiry, me_id, piece, buyer, preview))
         next_cursor = (
             _encode_cursor(inquiries[-1].last_message_at, inquiries[-1].id)
             if has_more and inquiries
@@ -109,10 +138,25 @@ def create_inquiry():
             raise AppError("Piece not found.", 404)
         if piece.user_id == me.id:
             raise AppError("Cannot inquire on your own piece.", 400)
+        if block_dao.is_blocked_either_way(db, me.id, piece.user_id):
+            raise AppError("Piece not found.", 404)
+
+        seller = get_user_by_id(db, piece.user_id)
+        seller_follows_buyer = social_dao.user_follows(db, seller.id, me.id)
+
+        if seller.message_permission == "no_one":
+            raise AppError("This seller isn't accepting messages right now.", 403)
+        if seller.message_permission == "following" and not seller_follows_buyer:
+            raise AppError("This seller only accepts messages from people they follow.", 403)
+
         existing = inquiries_dao.find_open_inquiry(db, piece.id, me.id)
         if existing:
             return {"id": str(existing.id), "reused": True}, 200
-        inquiry = inquiries_dao.create_inquiry(db, piece.id, me.id, piece.user_id)
+
+        # Instagram-style requests: if the seller doesn't already follow the buyer,
+        # the thread starts "pending" (seller's Requests folder) until they accept or reply.
+        initial_status = "open" if seller_follows_buyer else "pending"
+        inquiry = inquiries_dao.create_inquiry(db, piece.id, me.id, piece.user_id, status=initial_status)
         inquiries_dao.create_message(db, inquiry, me.id, message_text[:2000])
         notifications_dao.create_and_push(
             db,
@@ -122,10 +166,10 @@ def create_inquiry():
             target_type="inquiry",
             target_id=inquiry.id,
             payload={"pieceTitle": piece.title, "message": message_text[:140]},
-            title="New inquiry",
+            title="New message request" if initial_status == "pending" else "New inquiry",
             body=f"{me.name} asked about '{piece.title}'",
         )
-        return {"id": str(inquiry.id), "reused": False}, 201
+        return {"id": str(inquiry.id), "reused": False, "status": initial_status}, 201
     finally:
         db.close()
 
@@ -142,6 +186,9 @@ def reply(inquiry_id: str):
         _require_participant(inquiry, me_id)
         if inquiry.status == "closed":
             raise AppError("This inquiry is closed.", 400)
+        if inquiry.status == "pending" and inquiry.seller_id == me_id:
+            # Replying to a pending request implicitly accepts it (matches Instagram).
+            inquiries_dao.accept_inquiry(db, inquiry)
         message = inquiries_dao.create_message(db, inquiry, me_id, text[:2000])
         other_id = inquiry.seller_id if inquiry.buyer_id == me_id else inquiry.buyer_id
         sender = get_user_by_id(db, me_id)
@@ -157,6 +204,38 @@ def reply(inquiry_id: str):
             body=f"{sender.name}: {text[:100]}",
         )
         return inquiries_dao.message_to_dict(message, sender), 201
+    finally:
+        db.close()
+
+
+def accept(inquiry_id: str):
+    db = SessionLocal()
+    try:
+        me_id = uuid.UUID(g.user["id"])
+        inquiry = inquiries_dao.get_inquiry(db, uuid.UUID(inquiry_id))
+        _require_participant(inquiry, me_id)
+        if inquiry.seller_id != me_id:
+            raise AppError("Only the seller can accept a request.", 403)
+        if inquiry.status != "pending":
+            raise AppError(f"Cannot accept an inquiry in status '{inquiry.status}'.", 400)
+        inquiries_dao.accept_inquiry(db, inquiry)
+        return {"status": "open"}, 200
+    finally:
+        db.close()
+
+
+def decline(inquiry_id: str):
+    db = SessionLocal()
+    try:
+        me_id = uuid.UUID(g.user["id"])
+        inquiry = inquiries_dao.get_inquiry(db, uuid.UUID(inquiry_id))
+        _require_participant(inquiry, me_id)
+        if inquiry.seller_id != me_id:
+            raise AppError("Only the seller can decline a request.", 403)
+        if inquiry.status != "pending":
+            raise AppError(f"Cannot decline an inquiry in status '{inquiry.status}'.", 400)
+        inquiries_dao.decline_inquiry(db, inquiry)
+        return {"status": "closed"}, 200
     finally:
         db.close()
 

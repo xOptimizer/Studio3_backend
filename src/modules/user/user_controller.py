@@ -13,9 +13,26 @@ from src.shared.utils.rate_limit import rate_limit_user
 from src.modules.auth.auth_dao import find_user_by_username_or_history
 from src.modules.user.user_dao import get_user_by_id, update_user_fields, delist_user_pieces
 from src.modules.user.user_serializers import user_to_dict
-from src.modules.pieces.pieces_dao import list_user_pieces
+from src.modules.pieces.pieces_dao import list_user_pieces, get_piece
 from src.modules.social import social_dao
+from src.modules.social import block_dao
 from src.modules.user import device_dao
+
+
+def _resolve_target_owner(db, target_type: str, target_id: str):
+    from src.modules.posts.posts_dao import get_post
+
+    try:
+        tid = uuid.UUID(target_id)
+    except (ValueError, TypeError):
+        return None
+    if target_type == "piece":
+        piece = get_piece(db, tid)
+        return piece.user_id if piece else None
+    if target_type == "post":
+        post = get_post(db, tid)
+        return post.user_id if post else None
+    return None
 
 
 def get_me():
@@ -43,9 +60,20 @@ def patch_me():
                 raise AppError("Name is required.", 400)
             fields["name"] = name
         if "bio" in body:
-            fields["bio"] = body.get("bio")
+            bio = body.get("bio")
+            if bio and len(bio) > 250:
+                raise AppError("Bio must be 250 characters or fewer.", 400)
+            fields["bio"] = bio
         if "location" in body:
             fields["location"] = body.get("location")
+        if "phone" in body:
+            fields["phone"] = (body.get("phone") or "").strip() or None
+        if "pronouns" in body:
+            fields["pronouns"] = body.get("pronouns")
+        if "mediums" in body:
+            taste = dict(user.taste_preferences or {})
+            taste["mediums"] = body.get("mediums") or []
+            fields["taste_preferences"] = taste
         if "profilePhotoUrl" in body:
             url = body.get("profilePhotoUrl")
             if url:
@@ -62,6 +90,35 @@ def patch_me():
                 raise AppError("Both latitude and longitude are required together.", 400)
             fields["latitude"] = lat
             fields["longitude"] = lng
+        if "bannerTargetType" in body or "bannerTargetId" in body:
+            target_type = body.get("bannerTargetType")
+            target_id = body.get("bannerTargetId")
+            if target_type is None and target_id is None:
+                fields["banner_target_type"] = None
+                fields["banner_target_id"] = None
+            else:
+                if target_type not in ("piece", "post") or not target_id:
+                    raise AppError("bannerTargetType must be 'piece' or 'post' with a bannerTargetId.", 400)
+                owner_id = _resolve_target_owner(db, target_type, target_id)
+                if owner_id != user.id:
+                    raise AppError(f"{target_type.capitalize()} not found.", 404)
+                fields["banner_target_type"] = target_type
+                fields["banner_target_id"] = uuid.UUID(target_id)
+        if "bannerAutoRule" in body:
+            rule = body.get("bannerAutoRule")
+            if rule not in ("most_saved", "most_recent", "none"):
+                raise AppError("bannerAutoRule must be one of: most_saved, most_recent, none.", 400)
+            fields["banner_auto_rule"] = rule
+        if "messagePermission" in body:
+            perm = body.get("messagePermission")
+            if perm not in ("everyone", "following", "no_one"):
+                raise AppError("messagePermission must be one of: everyone, following, no_one.", 400)
+            fields["message_permission"] = perm
+        if "profileVisibility" in body:
+            visibility = body.get("profileVisibility")
+            if visibility not in ("public", "private"):
+                raise AppError("profileVisibility must be 'public' or 'private'.", 400)
+            fields["profile_visibility"] = visibility
         user = update_user_fields(db, user, **fields)
         return user_to_dict(db, user, viewer_id=user.id), 200
     finally:
@@ -96,9 +153,32 @@ def get_public_profile(username: str):
         if not user:
             raise AppError("User not found.", 404)
         viewer_id = uuid.UUID(g.user["id"]) if getattr(g, "user", None) else None
+
+        if viewer_id and block_dao.is_blocked_either_way(db, viewer_id, user.id):
+            raise AppError("User not found.", 404)
+
+        is_owner = viewer_id == user.id
+        is_follower = social_dao.user_follows(db, viewer_id, user.id) if viewer_id else False
+        if user.profile_visibility == "private" and not is_owner and not is_follower:
+            # Locked profile header only — pieces/posts/series grids are gated separately
+            # in each list endpoint via social_dao.can_view_content().
+            is_pending = social_dao.has_pending_request(db, viewer_id, user.id) if viewer_id else False
+            return {
+                "username": user.username,
+                "name": user.name,
+                "profilePhotoUrl": user.image,
+                "profileVisibility": "private",
+                "isFollowing": is_follower,
+                "followRequestPending": is_pending,
+            }, 200
+
         data = user_to_dict(db, user, include_private=False, viewer_id=viewer_id)
         if is_redirect:
             data["redirectToUsername"] = user.username
+        if not is_owner:
+            data["followRequestPending"] = (
+                social_dao.has_pending_request(db, viewer_id, user.id) if viewer_id else False
+            )
         return data, 200
     finally:
         db.close()
@@ -190,10 +270,27 @@ def seller_enable():
 
 
 def seller_disable():
+    from src.modules.orders import orders_dao
+
     db = SessionLocal()
     try:
         user = get_user_by_id(db, uuid.UUID(g.user["id"]))
+        # Block deactivation while anything is "in flight" — never auto-delist/abandon.
+        active_listings = list_user_pieces(db, user.id, for_sale_only=True)
+        if active_listings:
+            raise AppError(
+                "Remove your active listings before disabling seller mode.", 400
+            )
+        in_progress = orders_dao.count_seller_in_progress(db, user.id)
+        if in_progress:
+            raise AppError(
+                "You have in-progress sales — complete or cancel them before disabling seller mode.",
+                400,
+            )
         user = update_user_fields(db, user, seller_enabled=False)
+        # Defensive no-op by this point: the checks above guarantee no active listings
+        # remain, so this has nothing left to delist. Kept as a safety net, not the
+        # primary enforcement (that's the pre-check above).
         delist_user_pieces(db, user.id)
         return {"sellerEnabled": False}, 200
     finally:
@@ -306,5 +403,40 @@ def unregister_device():
     try:
         device_dao.delete_device_by_token(db, push_token)
         return {"registered": False}, 200
+    finally:
+        db.close()
+
+
+DEFAULT_NOTIFICATION_PREFERENCES = {
+    "push": {"follow": True, "like": True, "save": True, "comment": True, "inquiry": True, "purchase": True},
+    "dailyDigest": {"enabled": False, "time": "09:00"},
+}
+
+
+def update_notification_preferences():
+    """Partial update, deep-merged into the existing JSONB blob (same shape/merge convention
+    as the `mediums` alias into taste_preferences — see patch_me()).
+
+    Note: dailyDigest is a stored setting only — no scheduled job reads/sends it yet. No task
+    scheduler exists in this codebase (same category of decision as the push-queue question
+    declined earlier); this just persists the preference for when that lands."""
+    body = request.get_json() or {}
+    db = SessionLocal()
+    try:
+        user = get_user_by_id(db, uuid.UUID(g.user["id"]))
+        current = user.notification_preferences or DEFAULT_NOTIFICATION_PREFERENCES
+        merged = {**DEFAULT_NOTIFICATION_PREFERENCES, **current}
+
+        if "push" in body:
+            if not isinstance(body["push"], dict):
+                raise AppError("push must be an object of type -> boolean.", 400)
+            merged["push"] = {**merged.get("push", {}), **body["push"]}
+        if "dailyDigest" in body:
+            if not isinstance(body["dailyDigest"], dict):
+                raise AppError("dailyDigest must be an object.", 400)
+            merged["dailyDigest"] = {**merged.get("dailyDigest", {}), **body["dailyDigest"]}
+
+        user = update_user_fields(db, user, notification_preferences=merged)
+        return {"notificationPreferences": user.notification_preferences}, 200
     finally:
         db.close()

@@ -1,7 +1,7 @@
 """Social routes."""
 from flask import Blueprint, request
 
-from src.middlewares.auth_middleware import onboarding_required
+from src.middlewares.auth_middleware import onboarding_required, auth_required
 from src.shared.utils.api_response import success_response
 from src.shared.utils.async_handler import async_handler
 from src.modules.social import social_controller
@@ -28,6 +28,54 @@ def follow(username):
 def unfollow(username):
     data, status = social_controller.unfollow(username)
     return _ok("Unfollowed.", data, status)
+
+
+@social_bp.get("/users/follow-requests")
+@auth_required
+@async_handler
+def list_follow_requests():
+    data, status = social_controller.list_follow_requests()
+    return _ok("OK", data, status)
+
+
+@social_bp.post("/users/follow-requests/<username>/accept")
+@auth_required
+@async_handler
+def accept_follow_request(username):
+    data, status = social_controller.accept_follow_request(username)
+    return _ok("Follow request accepted.", data, status)
+
+
+@social_bp.post("/users/follow-requests/<username>/decline")
+@auth_required
+@async_handler
+def decline_follow_request(username):
+    data, status = social_controller.decline_follow_request(username)
+    return _ok("Follow request declined.", data, status)
+
+
+@social_bp.get("/users/blocked")
+@auth_required
+@async_handler
+def list_blocked():
+    data, status = social_controller.list_blocked()
+    return _ok("OK", data, status)
+
+
+@social_bp.post("/users/<username>/block")
+@auth_required
+@async_handler
+def block_user(username):
+    data, status = social_controller.block_user(username)
+    return _ok("User blocked.", data, status)
+
+
+@social_bp.delete("/users/<username>/block")
+@auth_required
+@async_handler
+def unblock_user(username):
+    data, status = social_controller.unblock_user(username)
+    return _ok("User unblocked.", data, status)
 
 
 @social_bp.post("/pieces/<piece_id>/like")

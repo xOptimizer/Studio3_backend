@@ -14,6 +14,7 @@ from src.shared.utils.app_error import AppError
 from src.modules.auth.auth_dao import find_user_by_username
 from src.modules.user.user_dao import get_user_by_id
 from src.modules.social import social_dao
+from src.modules.social import block_dao
 from src.modules.notifications import notifications_dao
 
 
@@ -32,23 +33,32 @@ def follow(username: str):
             raise AppError("User not found.", 404)
         if target.id == me.id:
             raise AppError("Cannot follow yourself.", 400)
-        existing = db.query(Follow).filter_by(follower_id=me.id, following_id=target.id).first()
+        if block_dao.is_blocked_either_way(db, me.id, target.id):
+            raise AppError("User not found.", 403)
+
+        existing = social_dao.get_follow(db, me.id, target.id)
         if existing:
-            return {"following": True}, 200
-        db.add(Follow(id=uuid.uuid4(), follower_id=me.id, following_id=target.id))
+            # Idempotent: already following, or already requested — no-op either way.
+            return {"following": existing.status == "accepted", "requested": existing.status == "pending"}, 200
+
+        # Private accounts require the owner's approval (Instagram-style); public accounts
+        # follow immediately, unchanged from before.
+        is_private = target.profile_visibility == "private"
+        status = "pending" if is_private else "accepted"
+        db.add(Follow(id=uuid.uuid4(), follower_id=me.id, following_id=target.id, status=status))
         db.commit()
         notifications_dao.create_and_push(
             db,
             user_id=target.id,
-            type="follow",
+            type="follow_request" if is_private else "follow",
             actor_id=me.id,
             target_type="user",
             target_id=me.id,
             payload={"followerUsername": me.username, "followerName": me.name},
-            title="New follower",
-            body=f"{me.name} started following you",
+            title="Follow request" if is_private else "New follower",
+            body=f"{me.name} requested to follow you" if is_private else f"{me.name} started following you",
         )
-        return {"following": True}, 200
+        return {"following": not is_private, "requested": is_private}, 200
     finally:
         db.close()
 
@@ -62,6 +72,76 @@ def unfollow(username: str):
             db.query(Follow).filter_by(follower_id=me.id, following_id=target.id).delete()
             db.commit()
         return {"following": False}, 200
+    finally:
+        db.close()
+
+
+def list_follow_requests():
+    db = SessionLocal()
+    try:
+        me_id = uuid.UUID(g.user["id"])
+        requests = social_dao.list_follow_requests(db, me_id)
+        requester_ids = {r.follower_id for r in requests}
+        requesters = {}
+        if requester_ids:
+            requesters = {u.id: u for u in db.execute(select(User).where(User.id.in_(requester_ids))).scalars()}
+        items = []
+        for r in requests:
+            requester = requesters.get(r.follower_id)
+            if not requester:
+                continue
+            items.append(
+                {
+                    "username": requester.username,
+                    "name": requester.name,
+                    "profilePhotoUrl": requester.image,
+                    "requestedAt": r.created_at.isoformat(),
+                }
+            )
+        return items, 200
+    finally:
+        db.close()
+
+
+def accept_follow_request(username: str):
+    db = SessionLocal()
+    try:
+        me_id = uuid.UUID(g.user["id"])
+        requester = find_user_by_username(db, username.lower())
+        if not requester:
+            raise AppError("User not found.", 404)
+        follow = social_dao.get_follow(db, requester.id, me_id)
+        if not follow or follow.status != "pending":
+            raise AppError("No pending follow request from this user.", 404)
+        social_dao.accept_follow_request(db, follow)
+        notifications_dao.create_and_push(
+            db,
+            user_id=requester.id,
+            type="follow",
+            actor_id=me_id,
+            target_type="user",
+            target_id=me_id,
+            payload={"accepted": True},
+            title="Follow request accepted",
+            body="Your follow request was accepted",
+        )
+        return {"accepted": True}, 200
+    finally:
+        db.close()
+
+
+def decline_follow_request(username: str):
+    db = SessionLocal()
+    try:
+        me_id = uuid.UUID(g.user["id"])
+        requester = find_user_by_username(db, username.lower())
+        if not requester:
+            raise AppError("User not found.", 404)
+        follow = social_dao.get_follow(db, requester.id, me_id)
+        if not follow or follow.status != "pending":
+            raise AppError("No pending follow request from this user.", 404)
+        social_dao.decline_follow_request(db, follow)
+        return {"declined": True}, 200
     finally:
         db.close()
 
@@ -210,5 +290,44 @@ def get_comments(target_type: str, target_id: str, cursor: str | None, limit: in
         items = [social_dao.comment_to_dict(c, users.get(c.user_id)) for c in comments]
         next_cursor = comments[-1].created_at.isoformat() if has_more and comments else None
         return {"items": items, "nextCursor": next_cursor}, 200
+    finally:
+        db.close()
+
+
+def block_user(username: str):
+    db = SessionLocal()
+    try:
+        me = get_user_by_id(db, uuid.UUID(g.user["id"]))
+        target = find_user_by_username(db, username.lower())
+        if not target:
+            raise AppError("User not found.", 404)
+        if target.id == me.id:
+            raise AppError("Cannot block yourself.", 400)
+        block_dao.block_user(db, me.id, target.id)
+        return {"blocked": True}, 200
+    finally:
+        db.close()
+
+
+def unblock_user(username: str):
+    db = SessionLocal()
+    try:
+        me = get_user_by_id(db, uuid.UUID(g.user["id"]))
+        target = find_user_by_username(db, username.lower())
+        if target:
+            block_dao.unblock_user(db, me.id, target.id)
+        return {"blocked": False}, 200
+    finally:
+        db.close()
+
+
+def list_blocked():
+    db = SessionLocal()
+    try:
+        me_id = uuid.UUID(g.user["id"])
+        blocked = block_dao.list_blocked(db, me_id)
+        return [
+            {"username": u.username, "name": u.name, "profilePhotoUrl": u.image} for u in blocked
+        ], 200
     finally:
         db.close()

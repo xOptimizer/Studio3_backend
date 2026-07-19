@@ -107,3 +107,11 @@ def update_user_password(db: Session, user_id: uuid.UUID, password_hash: str) ->
         update(User).where(User.id == user_id).values(password=password_hash)
     )
     db.commit()
+
+
+def update_user_email(db: Session, user_id: uuid.UUID, email: str) -> None:
+    from sqlalchemy import update
+    db.execute(
+        update(User).where(User.id == user_id).values(email=email, email_verified=True)
+    )
+    db.commit()

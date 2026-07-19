@@ -3,7 +3,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import Optional
 
-from sqlalchemy import select, or_, tuple_, func
+from sqlalchemy import select, or_, and_, tuple_, func
 from sqlalchemy.orm import Session
 
 from src.shared.models.inquiry import Inquiry, InquiryMessage
@@ -22,8 +22,10 @@ def count_seller_inquiries(db: Session, seller_id: uuid.UUID) -> int:
     ).scalar_one()
 
 
-def create_inquiry(db: Session, piece_id: uuid.UUID, buyer_id: uuid.UUID, seller_id: uuid.UUID) -> Inquiry:
-    inquiry = Inquiry(id=uuid.uuid4(), piece_id=piece_id, buyer_id=buyer_id, seller_id=seller_id)
+def create_inquiry(
+    db: Session, piece_id: uuid.UUID, buyer_id: uuid.UUID, seller_id: uuid.UUID, status: str = "open"
+) -> Inquiry:
+    inquiry = Inquiry(id=uuid.uuid4(), piece_id=piece_id, buyer_id=buyer_id, seller_id=seller_id, status=status)
     db.add(inquiry)
     db.commit()
     db.refresh(inquiry)
@@ -31,9 +33,12 @@ def create_inquiry(db: Session, piece_id: uuid.UUID, buyer_id: uuid.UUID, seller
 
 
 def find_open_inquiry(db: Session, piece_id: uuid.UUID, buyer_id: uuid.UUID) -> Optional[Inquiry]:
+    """An existing non-closed thread (open or pending) — reused instead of creating a duplicate."""
     return db.execute(
         select(Inquiry).where(
-            Inquiry.piece_id == piece_id, Inquiry.buyer_id == buyer_id, Inquiry.status == "open"
+            Inquiry.piece_id == piece_id,
+            Inquiry.buyer_id == buyer_id,
+            Inquiry.status.in_(("open", "pending")),
         )
     ).scalar_one_or_none()
 
@@ -45,7 +50,16 @@ def get_inquiry(db: Session, inquiry_id: uuid.UUID) -> Optional[Inquiry]:
 def list_inbox(
     db: Session, user_id: uuid.UUID, limit: int = 20, before: Optional[tuple] = None
 ) -> list[Inquiry]:
-    q = select(Inquiry).where(or_(Inquiry.buyer_id == user_id, Inquiry.seller_id == user_id))
+    """Primary inbox: the caller's own outgoing threads (any status — a buyer always sees
+    their own request, pending or not) plus threads where the caller is the seller AND
+    already accepted (status="open"). Pending seller-side threads live in list_requests()
+    instead, matching the Instagram-style "message requests" split."""
+    q = select(Inquiry).where(
+        or_(
+            Inquiry.buyer_id == user_id,
+            and_(Inquiry.seller_id == user_id, Inquiry.status == "open"),
+        )
+    )
     if before:
         before_ts, before_id = before
         q = q.where(tuple_(Inquiry.last_message_at, Inquiry.id) < tuple_(before_ts, before_id))
@@ -54,6 +68,31 @@ def list_inbox(
             q.order_by(Inquiry.last_message_at.desc(), Inquiry.id.desc()).limit(limit)
         ).scalars().all()
     )
+
+
+def list_requests(
+    db: Session, seller_id: uuid.UUID, limit: int = 20, before: Optional[tuple] = None
+) -> list[Inquiry]:
+    """Seller-only "requests" folder: pending threads awaiting accept/decline."""
+    q = select(Inquiry).where(Inquiry.seller_id == seller_id, Inquiry.status == "pending")
+    if before:
+        before_ts, before_id = before
+        q = q.where(tuple_(Inquiry.last_message_at, Inquiry.id) < tuple_(before_ts, before_id))
+    return list(
+        db.execute(
+            q.order_by(Inquiry.last_message_at.desc(), Inquiry.id.desc()).limit(limit)
+        ).scalars().all()
+    )
+
+
+def accept_inquiry(db: Session, inquiry: Inquiry) -> None:
+    inquiry.status = "open"
+    db.commit()
+
+
+def decline_inquiry(db: Session, inquiry: Inquiry) -> None:
+    inquiry.status = "closed"
+    db.commit()
 
 
 def create_message(db: Session, inquiry: Inquiry, sender_id: uuid.UUID, body: str) -> InquiryMessage:

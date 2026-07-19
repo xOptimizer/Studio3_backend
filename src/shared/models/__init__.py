@@ -14,6 +14,7 @@ from src.shared.models.device import Device
 from src.shared.models.inquiry import Inquiry, InquiryMessage
 from src.shared.models.address import Address
 from src.shared.models.order import Order, OrderItem
+from src.shared.models.block import Block
 
 __all__ = [
     "User",
@@ -39,4 +40,5 @@ __all__ = [
     "Address",
     "Order",
     "OrderItem",
+    "Block",
 ]

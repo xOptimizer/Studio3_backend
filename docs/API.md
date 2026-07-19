@@ -164,14 +164,53 @@ Same response shape as Register. Errors: `400` (missing fields), `401` (invalid 
 
 ### Get me / Update me (protected)
 
-**GET** `{{baseUrl}}/api/user/me` — Bearer required. Full profile: `username`, `name`, `email`, `phone`, `bio`, `location`, `profilePhotoUrl`, `coverPhotoUrl`, `role`, `sellerEnabled`, `onboardingComplete`, `emailVerified`, `canChangeUsername`, `tastePreferences`, `lastUsernameChangeAt`, counts (`followersCount`/`followingCount`/`piecesCount`/`savesCount`/`collectedCount`), `isFollowing` (always `false` for self), `savedPieces` (first 20, enriched — see [Pieces](#pieces)). Also includes the legacy alias keys `following`/`followers`/`pieces`/`saves`/`collected`/`isSeller`/`saved` for backward-compatible client parsing.
+**GET** `{{baseUrl}}/api/user/me` — Bearer required. Full profile: `username`, `name`, `email`, `phone`, `bio`, `location`, `pronouns`, `mediums` (array — alias for `tastePreferences.mediums`, see below), `profilePhotoUrl`, `coverPhotoUrl`, `banner` (computed "magnum opus" display object, see below), `role`, `sellerEnabled`, `onboardingComplete`, `emailVerified`, `canChangeUsername`, `tastePreferences`, `lastUsernameChangeAt`, counts (`followersCount`/`followingCount`/`piecesCount`/`savesCount`/`collectedCount`), `isFollowing` (always `false` for self), `savedPieces` (first 20, enriched — see [Pieces](#pieces)), plus private-only editing fields `bannerTargetType`/`bannerTargetId`/`bannerAutoRule`, `messagePermission`, `profileVisibility`, `notificationPreferences`. Also includes the legacy alias keys `following`/`followers`/`pieces`/`saves`/`collected`/`isSeller`/`saved` for backward-compatible client parsing.
 
-**PATCH** `{{baseUrl}}/api/user/me` — body: `{ "name"?, "bio"?, "location"?, "profilePhotoUrl"?, "coverPhotoUrl"?, "latitude"?, "longitude"? }`. `latitude`/`longitude` are optional — both-or-neither (400 if only one is sent); used for [seller "near me" discovery](#geo-near-me-discovery).
+**PATCH** `{{baseUrl}}/api/user/me` — body (all optional): `{ "name"?, "bio"? (max 250 chars), "location"?, "phone"?, "pronouns"?, "mediums"?: [] (writes into tastePreferences.mediums, merging — doesn't clobber styles/themes), "profilePhotoUrl"?, "coverPhotoUrl"?, "latitude"?, "longitude"?, "bannerTargetType"?: "piece"|"post", "bannerTargetId"?, "bannerAutoRule"?: "most_saved"|"most_recent"|"none", "messagePermission"?: "everyone"|"following"|"no_one", "profileVisibility"?: "public"|"private" }`.
+
+- `latitude`/`longitude` — both-or-neither (400 if only one is sent); used for [seller "near me" discovery](#geo-near-me-discovery).
+- `phone` — updated directly, no re-verification (phone isn't used for login/auth in this app). Send `""`/`null` to clear it.
+- `bannerTargetType`+`bannerTargetId` — manually pin a specific piece/post as the profile banner ("magnum opus"); validated against ownership (404 if not yours). Send both as `null`/omit to clear the manual pin and fall back to `bannerAutoRule`.
+- `bannerAutoRule` — when no manual pin is set, the banner is **computed at read time** (no background job materializes it): `"most_recent"` picks the newest piece/post; `"most_saved"` picks whichever has the most saves (falls back to no banner if nothing has been saved yet); `"none"` shows no banner.
+- `messagePermission` / `profileVisibility` — see [Privacy & blocking](#privacy--blocking) below.
+
+**PATCH** `{{baseUrl}}/api/user/me/password` (protected) — body `{ "currentPassword", "newPassword" }` (min 8 chars). `401` if `currentPassword` is wrong. Revokes all other sessions on success (same effect as logout-all) — the caller will need to log in again elsewhere.
+
+**Change email** (protected, two-step — the new address must be verified before it's written, mirroring registration's verify-then-write flow):
+- **POST** `{{baseUrl}}/api/user/me/email/request-change` — body `{ "newEmail" }`. `409` if another account already uses it. Sends a 6-digit OTP (5 min TTL) to `newEmail` — the *old* email is untouched until confirmed.
+- **POST** `{{baseUrl}}/api/user/me/email/confirm-change` — body `{ "newEmail", "otp" }`. `400` if the OTP is wrong/expired, `409` if the address was claimed by someone else in the meantime. On success, `User.email` is swapped and `emailVerified` stays `true`.
 
 ### Change username / Public profile
 
 - **PATCH** `/api/user/me/username` — `{ "username" }`. 30-day cooldown between changes.
-- **GET** `/api/user/:username` — Optional Bearer (populates `isFollowing`; omitted/anonymous gets `isFollowing: false`). Public subset only (no `email`/`phone`/`tastePreferences`/`savedPieces`). Supports `redirectToUsername` for renamed handles.
+- **GET** `/api/user/:username` — Optional Bearer (populates `isFollowing`; omitted/anonymous gets `isFollowing: false`). Public subset only (no `email`/`phone`/`tastePreferences`/`savedPieces`). Supports `redirectToUsername` for renamed handles. `404` if either party has blocked the other. If the target's `profileVisibility` is `"private"` and the viewer isn't the owner or an accepted follower, returns a locked-header shape instead: `{ "username", "name", "profilePhotoUrl", "profileVisibility": "private", "isFollowing", "followRequestPending" }`. Otherwise (public account, or private + owner/accepted-follower) the full public subset is returned with a `followRequestPending` field added (`false` for the owner). `followRequestPending: true` means the viewer already sent a follow request awaiting the owner's approval — client should render a "Requested" button state instead of "Follow".
+
+### Instagram-style private accounts & follow requests
+
+- `profileVisibility` (on `PATCH /api/user/me`) — `"public"` (default) or `"private"`.
+- **Public accounts**: `POST /api/users/:username/follow` follows immediately (`{ "following": true, "requested": false }`), unchanged from before.
+- **Private accounts**: following requires the owner's approval. `POST /api/users/:username/follow` creates a `pending` request instead (`{ "following": false, "requested": true }`) and notifies the owner (`type: "follow_request"`). Calling it again while pending/accepted is a no-op that just returns the current state. `DELETE /api/users/:username/follow` (unfollow) also cancels a still-pending request.
+- Private accounts also hide their pieces/posts/series grids from anyone who isn't the owner or an accepted follower — `GET /api/users/:username/pieces`, `.../pieces/for-sale`, `.../posts`, `.../series` all now accept an optional Bearer token and return `403` ("This account is private.") for non-approved viewers of a private account. Public accounts are unaffected — those endpoints stay fully open.
+- **Managing requests (target user only):**
+
+| Method | URL | Notes |
+|--------|-----|-------|
+| GET | `/api/users/follow-requests` | List pending requests to follow you (`username`, `name`, `profilePhotoUrl`, `requestedAt`) |
+| POST | `/api/users/follow-requests/:username/accept` | Approve — flips the request to an accepted follow, notifies the requester |
+| POST | `/api/users/follow-requests/:username/decline` | Reject — deletes the pending request, no notification |
+
+### Privacy & blocking
+
+- `messagePermission` (on `PATCH /api/user/me`) controls who can start an [inquiry](#inquiries) with you: `"everyone"` (default, Instagram-style — see Inquiries), `"following"` (only people you already follow — `403` otherwise, no request fallback), `"no_one"` (`403` always).
+- **Blocked accounts:**
+
+| Method | URL | Notes |
+|--------|-----|-------|
+| GET | `/api/users/blocked` | List accounts you've blocked |
+| POST | `/api/users/:username/block` | Block a user |
+| DELETE | `/api/users/:username/block` | Unblock |
+
+Blocking (a) deletes any existing follow relationship (including a pending request) between the two accounts in either direction, (b) makes `POST /api/users/:username/follow` and `POST /api/inquiries` (new threads) return `403`/`404` between the two accounts, (c) makes `GET /api/user/:username` return `404` between the two accounts. Existing likes/comments/saves are **not** retroactively removed.
 
 ### Onboarding (protected)
 
@@ -187,9 +226,14 @@ Same response shape as Register. Errors: `400` (missing fields), `401` (invalid 
 | Method | URL | Body |
 |--------|-----|------|
 | POST | `/api/user/me/seller/enable` | `{ "location", "useProfileLocation"?: true }` |
-| POST | `/api/user/me/seller/disable` | — (auto-delists for-sale pieces) |
+| POST | `/api/user/me/seller/disable` | — see deactivation rules below |
 | GET | `/api/user/me/seller` | — |
 | GET | `/api/user/me/seller/analytics` | — |
+
+**Seller deactivation is blocked, never destructive** — `POST /api/user/me/seller/disable` checks state first:
+- Any piece with `isForSale: true` and `status: "live"` → `400` "Remove your active listings before disabling seller mode." (listings are never auto-delisted/deleted to force this through).
+- Any order with status `pending_payment`/`paid`/`shipped` where the caller is the seller → `400` "You have in-progress sales — complete or cancel them before disabling seller mode."
+- Otherwise succeeds. Sold/delisted pieces stay visible in the pieces grid, order history (`/me/sales`) stays accessible, and re-enabling later needs no re-setup — all already true without any extra logic since those aren't gated by `sellerEnabled`.
 
 **Seller analytics response:**
 ```json
@@ -206,6 +250,14 @@ Same response shape as Register. Errors: `400` (missing fields), `401` (invalid 
 
 - **POST** `{{baseUrl}}/api/user/me/devices` — body `{ "platform": "ios"|"android"|"web", "pushToken": "..." }`. Upserts by token — a token belongs to one app install, so registering it under a new user reassigns it (handles device-sharing/logout-login).
 - **DELETE** `{{baseUrl}}/api/user/me/devices` — body `{ "pushToken" }`. Deletes the token registration (call on logout).
+
+### Notification preferences (protected)
+
+**PATCH** `{{baseUrl}}/api/user/me/notification-preferences` — partial update, deep-merged into the existing settings (per-key, not a full replace):
+```json
+{ "push": { "like": false }, "dailyDigest": { "enabled": true, "time": "18:00" } }
+```
+Defaults (if never set): all `push` types `true`, `dailyDigest.enabled: false`. `push.<type>` (`follow|follow_request|like|save|comment|inquiry|purchase`) gates whether that [notification](#notifications) also sends a device push — the in-app activity-feed row is always written regardless. **`dailyDigest` is a stored setting only** — no scheduled job reads or sends it yet (no task scheduler exists in this backend); don't treat it as a working feature until that lands.
 
 ### Addresses (protected)
 
@@ -294,7 +346,7 @@ Create/edit routes require completed onboarding (`onboardingComplete: true`). De
   "relatedPosts": []
 }
 ```
-`series` is `null` if the piece doesn't belong to one. `GET /api/user/me/saved/pieces` and `GET /api/users/:username/pieces` / `.../pieces/for-sale` return arrays of this same enriched shape (list endpoints under `/api/users/:username/*` are unauthenticated, so `isLiked`/`isSaved`/`author.isFollowing` are always `false` there).
+`series` is `null` if the piece doesn't belong to one. `GET /api/user/me/saved/pieces` and `GET /api/users/:username/pieces` / `.../pieces/for-sale` return arrays of this same shape without the enrichment fields (`isLiked`/`isSaved`/`author.isFollowing` are always `false` there). The `/api/users/:username/*` list endpoints (`pieces`, `pieces/for-sale`, `posts`, `series`) accept an optional Bearer token and return `403` if the target account is `private` and the caller isn't the owner or an accepted follower — see [Instagram-style private accounts](#instagram-style-private-accounts--follow-requests).
 
 ### Scenes (API: posts)
 
@@ -321,7 +373,10 @@ Like/save/comment-create/follow mutation routes require Bearer + completed onboa
 
 | Method | URL | Notes |
 |--------|-----|-------|
-| POST/DELETE | `/api/users/:username/follow` | Follow/unfollow |
+| POST/DELETE | `/api/users/:username/follow` | Follow/unfollow — instant for public accounts, creates/cancels a pending request for private accounts (see [Instagram-style private accounts](#instagram-style-private-accounts--follow-requests)) |
+| GET | `/api/users/follow-requests` | Pending requests to follow you |
+| POST | `/api/users/follow-requests/:username/accept` | Approve a pending request |
+| POST | `/api/users/follow-requests/:username/decline` | Reject a pending request |
 | POST/DELETE | `/api/pieces/:id/like`, `/api/posts/:id/like` | Like/unlike piece or scene |
 | POST/DELETE | `/api/pieces/:id/save`, `/api/posts/:id/save` | Save/unsave piece or scene |
 | POST | `/api/pieces/:id/comments`, `/api/posts/:id/comments` | `{ "body" }` |
@@ -398,7 +453,7 @@ General activity feed. Every entry may also trigger a push via [Devices](#device
 {
   "data": {
     "items": [{
-      "id": "uuid", "type": "save"|"follow"|"inquiry"|"purchase"|"like"|"comment",
+      "id": "uuid", "type": "save"|"follow"|"follow_request"|"inquiry"|"purchase"|"like"|"comment",
       "actor": { "username", "name", "profilePhotoUrl" },
       "target": { "type": "piece"|"post"|"order"|"inquiry"|"user", "id": "uuid" },
       "payload": { "...": "type-specific pre-rendered fields" },
@@ -409,28 +464,33 @@ General activity feed. Every entry may also trigger a push via [Devices](#device
 }
 ```
 
-Emitted automatically by: follow, like, save, comment (see [Social](#social)), new inquiry message (see [Inquiries](#inquiries)), and order confirmation (see [Orders](#orders--checkout--addresses)).
+Emitted automatically by: follow (or `follow_request` for a private-account request — see [Instagram-style private accounts](#instagram-style-private-accounts--follow-requests)), like, save, comment (see [Social](#social)), new inquiry message (see [Inquiries](#inquiries)), and order confirmation (see [Orders](#orders--checkout--addresses)).
 
 ---
 
 ## Inquiries
 
-Structured, **piece-scoped** chat — a buyer asks about a specific piece, the seller replies. Not open/general DMs. Mutations require Bearer + onboarding; reads require Bearer (participant-only).
+Structured, **piece-scoped** chat — a buyer asks about a specific piece, the seller replies. Not open/general DMs. Mutations require Bearer + onboarding; reads require Bearer (participant-only). Blocked-either-way pairs get `403`/`404` (see [Privacy & blocking](#privacy--blocking)).
+
+**Instagram-style message requests**: a thread has three states — `open` (both sides can read/reply), `pending` (buyer messaged a seller who doesn't yet follow them back — sits in the seller's Requests folder until accepted, declined, or replied to), `closed` (declined, or explicitly closed). See [`messagePermission`](#privacy--blocking) for the stricter override modes.
 
 | Method | URL | Body |
 |--------|-----|------|
-| GET | `/api/inquiries` | — Inbox, cursor-paginated by last activity |
-| GET | `/api/inquiries/:id` | — Thread + messages; auto-marks caller's read state |
+| GET | `/api/inquiries` | — Primary inbox, cursor-paginated by last activity. Includes all of the caller's own outgoing threads (`open` or `pending`) plus `open` threads where the caller is the seller. Pending seller-side threads are **not** here — see `/requests`. |
+| GET | `/api/inquiries/requests` | — Seller-only "requests" folder: `pending` threads awaiting accept/decline. Same shape/pagination as the main inbox. |
+| GET | `/api/inquiries/:id` | — Thread + messages; auto-marks caller's read state (does **not** accept a pending request — only replying or explicit accept does) |
 | POST | `/api/inquiries` | `{ "pieceId", "message" }` |
-| POST | `/api/inquiries/:id/messages` | `{ "body" }` |
+| POST | `/api/inquiries/:id/messages` | `{ "body" }` — if the seller replies to a `pending` thread, it auto-flips to `open` first (mirrors Instagram: replying accepts) |
+| POST | `/api/inquiries/:id/accept` | — Seller only, `pending → open` |
+| POST | `/api/inquiries/:id/decline` | — Seller only, `pending → closed` |
 | PATCH | `/api/inquiries/:id/read` | — Explicit mark-read (in addition to auto-mark on GET) |
 
-**Inbox item:**
+**Inbox / requests item:**
 ```json
-{ "id", "piece": {"id","title","thumbnailUrl"}, "otherParty": {...}, "preview": "...", "updatedAt": "...", "unread": true, "status": "open" }
+{ "id", "piece": {"id","title","thumbnailUrl"}, "otherParty": {...}, "preview": "...", "updatedAt": "...", "unread": true, "status": "open"|"pending"|"closed" }
 ```
 
-**`POST /api/inquiries`:** 400 if inquiring on your own piece. If an open thread already exists for this buyer+piece, returns the **existing** thread with `200` (`{"id", "reused": true}`) instead of erroring — otherwise creates one and returns `201` (`{"id", "reused": false}`). Every new message notifies the other participant (push included).
+**`POST /api/inquiries`:** `403` if the seller's `messagePermission` is `"no_one"`, or `"following"` and the seller doesn't already follow the buyer. `400` if inquiring on your own piece. If a non-closed thread already exists for this buyer+piece, returns the **existing** thread with `200` (`{"id", "reused": true}`) instead of erroring — otherwise creates one and returns `201` (`{"id", "reused": false, "status": "open"|"pending"}`): `"open"` if the seller already follows the buyer, `"pending"` otherwise (default `messagePermission: "everyone"`). Every new message notifies the other participant (push included).
 
 ---
 
@@ -491,12 +551,16 @@ Validates the piece is for-sale and `status == "live"` (else `409`), the caller 
 | POST | `{{baseUrl}}/api/auth/logout-all` | Bearer | — |
 | POST | `{{baseUrl}}/api/auth/forget-password` | — | `{ "email" }` |
 | POST | `{{baseUrl}}/api/auth/reset-password` | — | `{ "token", "newPassword" }` |
-| GET/PATCH | `{{baseUrl}}/api/user/me` | Bearer | Profile fields incl. `latitude`/`longitude` |
+| GET/PATCH | `{{baseUrl}}/api/user/me` | Bearer | Profile fields incl. `latitude`/`longitude`, `pronouns`, `mediums`, banner/privacy settings |
+| PATCH | `{{baseUrl}}/api/user/me/password` | Bearer | `{ "currentPassword", "newPassword" }` |
+| PATCH | `{{baseUrl}}/api/user/me/notification-preferences` | Bearer | `{ "push"?, "dailyDigest"? }` |
 | PATCH | `{{baseUrl}}/api/user/me/username` \| `/role` | Bearer | — |
 | GET | `{{baseUrl}}/api/user/:username` | Optional Bearer | — |
+| GET | `{{baseUrl}}/api/users/blocked` | Bearer | — |
+| POST/DELETE | `{{baseUrl}}/api/users/:username/block` | Bearer | — |
 | GET | `{{baseUrl}}/api/users/nearby` | Optional Bearer | Query: `lat`, `lng`, `radiusKm?`, `limit?` |
 | POST | `{{baseUrl}}/api/user/me/onboarding/*` | Bearer | See above |
-| POST/GET | `{{baseUrl}}/api/user/me/seller/*` | Bearer | See above |
+| POST/GET | `{{baseUrl}}/api/user/me/seller/*` | Bearer | See above (disable is state-checked, see above) |
 | GET | `{{baseUrl}}/api/user/me/saved/pieces` \| `/saved/posts` \| `/orders` \| `/sales` | Bearer | — |
 | GET/POST/PATCH/DELETE | `{{baseUrl}}/api/user/me/addresses/*` | Bearer | See above |
 | POST/DELETE | `{{baseUrl}}/api/user/me/devices` | Bearer | `{ "platform", "pushToken" }` |

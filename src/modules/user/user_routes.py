@@ -14,6 +14,7 @@ from src.modules.addresses import addresses_controller
 from src.modules.orders import orders_controller
 from src.modules.posts import posts_controller
 from src.modules.series import series_controller
+from src.modules.auth import auth_controller
 
 user_bp = Blueprint("user", __name__)
 media_bp = Blueprint("media", __name__)
@@ -46,6 +47,30 @@ def patch_me():
 def patch_username():
     data, status = user_controller.patch_username()
     return _ok("Username updated.", data, status)
+
+
+@user_bp.patch("/me/password")
+@auth_required
+@async_handler
+def patch_password():
+    data, status, _ = auth_controller.change_password()
+    return _ok("Password changed.", data, status)
+
+
+@user_bp.post("/me/email/request-change")
+@auth_required
+@async_handler
+def request_email_change():
+    data, status, _ = auth_controller.request_email_change()
+    return _ok("OK", data, status)
+
+
+@user_bp.post("/me/email/confirm-change")
+@auth_required
+@async_handler
+def confirm_email_change():
+    data, status, _ = auth_controller.confirm_email_change()
+    return _ok("Email updated.", data, status)
 
 
 @user_bp.patch("/me/role")
@@ -126,6 +151,14 @@ def my_series():
 def saved_pieces():
     data, status = pieces_controller.list_saved_for_me(uuid.UUID(g.user["id"]))
     return _ok("OK", data, status)
+
+
+@user_bp.patch("/me/notification-preferences")
+@auth_required
+@async_handler
+def patch_notification_preferences():
+    data, status = user_controller.update_notification_preferences()
+    return _ok("Notification preferences updated.", data, status)
 
 
 @user_bp.post("/me/devices")

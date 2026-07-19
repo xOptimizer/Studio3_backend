@@ -165,6 +165,9 @@ def list_for_user(username: str, for_sale_only: bool = False):
         user = find_user_by_username(db, username.lower())
         if not user:
             raise AppError("User not found.", 404)
+        viewer_id = uuid.UUID(g.user["id"]) if getattr(g, "user", None) else None
+        if not social_dao.can_view_content(db, user, viewer_id):
+            raise AppError("This account is private.", 403)
         pieces = list_user_pieces(db, user.id, for_sale_only=for_sale_only)
         return [piece_to_dict(p) for p in pieces], 200
     finally:

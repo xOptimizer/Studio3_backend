@@ -19,6 +19,10 @@ class Follow(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     follower_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     following_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    # "pending" when following_id's account is private and the request hasn't been accepted
+    # yet (Instagram-style); "accepted" for public-account follows (immediate, as before)
+    # and once a pending request is approved.
+    status = Column(String(16), default="accepted", nullable=False)  # pending|accepted
     created_at = Column(DateTime(timezone=True), nullable=False, default=utc_now)
 
 

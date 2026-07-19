@@ -13,6 +13,18 @@ from src.shared.models.piece import Piece
 # pending_payment (not yet paid) and cancelled.
 COMPLETED_STATUSES = ("paid", "shipped", "completed")
 
+# Orders still "in flight" from the seller's perspective — not yet fully completed or
+# cancelled. Used to block seller deactivation until these are resolved.
+IN_PROGRESS_STATUSES = ("pending_payment", "paid", "shipped")
+
+
+def count_seller_in_progress(db: Session, seller_id: uuid.UUID) -> int:
+    return db.execute(
+        select(func.count(Order.id)).where(
+            Order.seller_id == seller_id, Order.status.in_(IN_PROGRESS_STATUSES)
+        )
+    ).scalar_one()
+
 
 def create_order(
     db: Session,

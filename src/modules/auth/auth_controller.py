@@ -335,3 +335,89 @@ def reset_password():
     if not ok:
         raise AppError(INVALID_RESET_TOKEN, 400)
     return {"message": "Password has been reset successfully."}, 200, None
+
+
+def change_password():
+    """Authenticated password change (distinct from the email-token forget/reset flow above).
+    Invalidates other active sessions, same as logout-all, since a password change should
+    kill any sessions started before the credential was known to be compromised/changed."""
+    from src.modules.auth.auth_dao import update_user_password
+    from src.shared.models.user import User
+
+    body = request.get_json() or {}
+    current_password = body.get("currentPassword")
+    new_password = body.get("newPassword")
+    if not current_password:
+        raise AppError("Current password is required.", 400)
+    if not new_password or len(new_password) < MIN_PASSWORD_LEN:
+        raise AppError("New password must be at least 8 characters.", 400)
+
+    user_id = uuid.UUID(g.user["id"])
+    db = SessionLocal()
+    try:
+        user = db.get(User, user_id)
+        if not user or not user.password or not _verify_password(current_password, user.password):
+            raise AppError("Current password is incorrect.", 401)
+        update_user_password(db, user_id, _hash_password(new_password))
+        revoke_all_for_user(db, user_id)
+    finally:
+        db.close()
+
+    delete_all_sessions_for_user(str(user_id))
+    return {"message": "Password changed successfully."}, 200, None
+
+
+def _email_change_otp_key(new_email: str) -> str:
+    # Prefixed so it never collides with a registration OTP for the same address.
+    return f"email_change:{new_email}"
+
+
+def request_email_change():
+    """Step 1 of authenticated email change: send an OTP to the NEW address before
+    anything is written, mirroring register()'s verify-before-write pattern."""
+    from src.modules.auth.auth_dao import find_user_by_email
+
+    body = request.get_json() or {}
+    new_email = (body.get("newEmail") or "").strip().lower()
+    if not new_email:
+        raise AppError(EMAIL_REQUIRED, 400)
+
+    db = SessionLocal()
+    try:
+        if find_user_by_email(db, new_email):
+            raise AppError("This email is already in use.", 409)
+    finally:
+        db.close()
+
+    key = _email_change_otp_key(new_email)
+    if not acquire_lock(key):
+        raise AppError("Please wait before requesting another code.", 429)
+    if not check_resend_limit(key):
+        raise AppError("Resend limit exceeded. Try again later.", 429)
+    otp = generate_otp(6)
+    store_otp(key, otp)
+    send_email(new_email, "Confirm your new email", get_otp_html(otp))
+    return {"message": "Verification code sent to the new email address."}, 200, None
+
+
+def confirm_email_change():
+    """Step 2: verify the OTP sent to the new address, then swap User.email."""
+    from src.modules.auth.auth_dao import find_user_by_email, update_user_email
+
+    body = request.get_json() or {}
+    new_email = (body.get("newEmail") or "").strip().lower()
+    otp = (body.get("otp") or "").strip()
+    if not new_email:
+        raise AppError(EMAIL_REQUIRED, 400)
+    if not otp or not verify_otp(_email_change_otp_key(new_email), otp):
+        raise AppError(OTP_VERIFICATION_FAILED, 400)
+
+    user_id = uuid.UUID(g.user["id"])
+    db = SessionLocal()
+    try:
+        if find_user_by_email(db, new_email):
+            raise AppError("This email is already in use.", 409)
+        update_user_email(db, user_id, new_email)
+    finally:
+        db.close()
+    return {"email": new_email}, 200, None

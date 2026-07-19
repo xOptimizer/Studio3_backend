@@ -34,6 +34,15 @@ class User(Base):
     onboarding_complete = Column(Boolean, default=False, nullable=False)
     taste_preferences = Column(JSONB, nullable=True)  # {mediums, styles, themes}
     last_username_change_at = Column(DateTime(timezone=True), nullable=True)
+    pronouns = Column(String(50), nullable=True)
+    # "Magnum opus" banner: a manually-pinned piece/post, or an auto-selection rule
+    # computed at read time (no cron exists to materialize this — see user_serializers.py).
+    banner_target_type = Column(String(16), nullable=True)  # piece|post
+    banner_target_id = Column(UUID(as_uuid=True), nullable=True)
+    banner_auto_rule = Column(String(16), default="none", nullable=False)  # most_saved|most_recent|none
+    message_permission = Column(String(16), default="everyone", nullable=False)  # everyone|following|no_one
+    profile_visibility = Column(String(16), default="public", nullable=False)  # public|private
+    notification_preferences = Column(JSONB, nullable=True)  # {push: {...}, dailyDigest: {...}}
     created_at = Column(DateTime(timezone=True), nullable=False, default=utc_now)
     updated_at = Column(
         DateTime(timezone=True), nullable=False, default=utc_now, onupdate=utc_now

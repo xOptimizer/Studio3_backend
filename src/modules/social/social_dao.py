@@ -41,19 +41,41 @@ def user_saved(db: Session, target_type: str, target_id: uuid.UUID, user_id: uui
 
 
 def user_follows(db: Session, follower_id: Optional[uuid.UUID], following_id: uuid.UUID) -> bool:
+    """True only for an ACCEPTED follow — a pending (unapproved) request doesn't count as
+    following yet. See has_pending_request() for the "Requested" button state."""
     if not follower_id:
         return False
     return db.execute(
-        select(Follow.id).where(Follow.follower_id == follower_id, Follow.following_id == following_id)
+        select(Follow.id).where(
+            Follow.follower_id == follower_id,
+            Follow.following_id == following_id,
+            Follow.status == "accepted",
+        )
+    ).first() is not None
+
+
+def has_pending_request(db: Session, follower_id: Optional[uuid.UUID], following_id: uuid.UUID) -> bool:
+    if not follower_id:
+        return False
+    return db.execute(
+        select(Follow.id).where(
+            Follow.follower_id == follower_id,
+            Follow.following_id == following_id,
+            Follow.status == "pending",
+        )
     ).first() is not None
 
 
 def count_followers(db: Session, user_id: uuid.UUID) -> int:
-    return db.execute(select(func.count(Follow.id)).where(Follow.following_id == user_id)).scalar_one()
+    return db.execute(
+        select(func.count(Follow.id)).where(Follow.following_id == user_id, Follow.status == "accepted")
+    ).scalar_one()
 
 
 def count_following(db: Session, user_id: uuid.UUID) -> int:
-    return db.execute(select(func.count(Follow.id)).where(Follow.follower_id == user_id)).scalar_one()
+    return db.execute(
+        select(func.count(Follow.id)).where(Follow.follower_id == user_id, Follow.status == "accepted")
+    ).scalar_one()
 
 
 def count_user_saves(db: Session, user_id: uuid.UUID) -> int:
@@ -68,6 +90,17 @@ def batch_like_counts(db: Session, target_type: str, target_ids: list[uuid.UUID]
         select(Like.target_id, func.count(Like.id))
         .where(Like.target_type == target_type, Like.target_id.in_(target_ids))
         .group_by(Like.target_id)
+    ).all()
+    return {tid: c for tid, c in rows}
+
+
+def batch_save_counts(db: Session, target_type: str, target_ids: list[uuid.UUID]) -> dict[uuid.UUID, int]:
+    if not target_ids:
+        return {}
+    rows = db.execute(
+        select(Save.target_id, func.count(Save.id))
+        .where(Save.target_type == target_type, Save.target_id.in_(target_ids))
+        .group_by(Save.target_id)
     ).all()
     return {tid: c for tid, c in rows}
 
@@ -141,3 +174,40 @@ def comment_to_dict(comment: Comment, author: Optional[User]) -> dict:
         ),
         "createdAt": comment.created_at.isoformat(),
     }
+
+
+def get_follow(db: Session, follower_id: uuid.UUID, following_id: uuid.UUID) -> Optional[Follow]:
+    return db.execute(
+        select(Follow).where(Follow.follower_id == follower_id, Follow.following_id == following_id)
+    ).scalar_one_or_none()
+
+
+def list_follow_requests(db: Session, user_id: uuid.UUID) -> list[Follow]:
+    """Pending requests to follow `user_id` (i.e. `user_id` is the account being followed)."""
+    return list(
+        db.execute(
+            select(Follow)
+            .where(Follow.following_id == user_id, Follow.status == "pending")
+            .order_by(Follow.created_at.desc())
+        ).scalars().all()
+    )
+
+
+def accept_follow_request(db: Session, follow: Follow) -> None:
+    follow.status = "accepted"
+    db.commit()
+
+
+def decline_follow_request(db: Session, follow: Follow) -> None:
+    db.delete(follow)
+    db.commit()
+
+
+def can_view_content(db: Session, profile_user: User, viewer_id: Optional[uuid.UUID]) -> bool:
+    """Whether `viewer_id` can see profile_user's pieces/posts/series grids — public accounts
+    are open to everyone; private accounts require the owner or an accepted follower."""
+    if profile_user.profile_visibility != "private":
+        return True
+    if viewer_id and viewer_id == profile_user.id:
+        return True
+    return user_follows(db, viewer_id, profile_user.id)

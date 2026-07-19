@@ -47,10 +47,15 @@ def create_and_push(
     payload: Optional[dict] = None,
     push_data: Optional[dict] = None,
 ) -> Notification:
-    """Writes the Notification row, then attempts a push. Push failure never affects the row —
-    send_push always fails open (never raises), so this never rolls back the notification."""
+    """Writes the Notification row, then attempts a push (unless the recipient has muted this
+    type). Push failure never affects the row — send_push always fails open (never raises),
+    so this never rolls back the notification."""
     notification = create_notification(db, user_id, type, actor_id, target_type, target_id, payload)
-    send_push(user_id, title, body, data=push_data)
+    recipient = db.get(User, user_id)
+    # Unset notification_preferences (never configured) defaults to all-enabled.
+    push_prefs = (recipient.notification_preferences or {}).get("push", {}) if recipient else {}
+    if push_prefs.get(type, True):
+        send_push(user_id, title, body, data=push_data)
     return notification
 
 

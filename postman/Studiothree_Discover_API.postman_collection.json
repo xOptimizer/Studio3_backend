@@ -251,6 +251,42 @@
           }
         },
         {
+          "name": "Change Password",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"securePassword123\",\n  \"newPassword\": \"newSecurePassword456\"\n}"
+            },
+            "url": "{{baseUrl}}/api/user/me/password"
+          }
+        },
+        {
+          "name": "Request Email Change",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"newEmail\": \"new-address@example.com\"\n}"
+            },
+            "url": "{{baseUrl}}/api/user/me/email/request-change"
+          }
+        },
+        {
+          "name": "Confirm Email Change",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"newEmail\": \"new-address@example.com\",\n  \"otp\": \"123456\"\n}"
+            },
+            "url": "{{baseUrl}}/api/user/me/email/confirm-change"
+          }
+        },
+        {
           "name": "Public Profile",
           "request": {
             "auth": { "type": "noauth" },
@@ -668,6 +704,27 @@
           "request": {
             "method": "DELETE",
             "url": "{{baseUrl}}/api/users/{{username}}/follow"
+          }
+        },
+        {
+          "name": "List Follow Requests",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/users/follow-requests"
+          }
+        },
+        {
+          "name": "Accept Follow Request",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/users/follow-requests/{{username}}/accept"
+          }
+        },
+        {
+          "name": "Decline Follow Request",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/users/follow-requests/{{username}}/decline"
           }
         },
         {

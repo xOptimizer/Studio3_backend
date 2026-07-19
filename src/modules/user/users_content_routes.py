@@ -26,6 +26,7 @@ def nearby():
 
 
 @users_bp.get("/<username>/pieces")
+@optional_auth
 @async_handler
 def list_pieces(username):
     data, status = pieces_controller.list_for_user(username)
@@ -33,6 +34,7 @@ def list_pieces(username):
 
 
 @users_bp.get("/<username>/pieces/for-sale")
+@optional_auth
 @async_handler
 def list_pieces_for_sale(username):
     data, status = pieces_controller.list_for_user(username, for_sale_only=True)
@@ -40,6 +42,7 @@ def list_pieces_for_sale(username):
 
 
 @users_bp.get("/<username>/posts")
+@optional_auth
 @async_handler
 def list_posts(username):
     data, status = posts_controller.list_for_user(username)
@@ -47,6 +50,7 @@ def list_posts(username):
 
 
 @users_bp.get("/<username>/series")
+@optional_auth
 @async_handler
 def list_series(username):
     data, status = series_controller.list_for_user(username)

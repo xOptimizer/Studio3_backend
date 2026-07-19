@@ -22,6 +22,14 @@ def list_inbox():
     return _ok("OK", data, status)
 
 
+@inquiries_bp.get("/requests")
+@auth_required
+@async_handler
+def list_requests():
+    data, status = inquiries_controller.list_requests()
+    return _ok("OK", data, status)
+
+
 @inquiries_bp.get("/<inquiry_id>")
 @auth_required
 @async_handler
@@ -44,6 +52,22 @@ def create_inquiry():
 def reply(inquiry_id):
     data, status = inquiries_controller.reply(inquiry_id)
     return _ok("Message sent.", data, status)
+
+
+@inquiries_bp.post("/<inquiry_id>/accept")
+@auth_required
+@async_handler
+def accept(inquiry_id):
+    data, status = inquiries_controller.accept(inquiry_id)
+    return _ok("Request accepted.", data, status)
+
+
+@inquiries_bp.post("/<inquiry_id>/decline")
+@auth_required
+@async_handler
+def decline(inquiry_id):
+    data, status = inquiries_controller.decline(inquiry_id)
+    return _ok("Request declined.", data, status)
 
 
 @inquiries_bp.patch("/<inquiry_id>/read")

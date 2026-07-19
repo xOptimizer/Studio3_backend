@@ -9,6 +9,7 @@ from src.modules.auth.auth_dao import find_user_by_username
 from src.modules.user.user_dao import get_user_by_id
 from src.modules.pieces.pieces_dao import get_piece
 from src.modules.series import series_dao
+from src.modules.social import social_dao
 
 
 def list_for_user(username: str):
@@ -17,6 +18,9 @@ def list_for_user(username: str):
         user = find_user_by_username(db, username.lower())
         if not user:
             raise AppError("User not found.", 404)
+        viewer_id = uuid.UUID(g.user["id"]) if getattr(g, "user", None) else None
+        if not social_dao.can_view_content(db, user, viewer_id):
+            raise AppError("This account is private.", 403)
         series_list = series_dao.list_user_series(db, user.id)
         summaries = [series_dao.series_summary_dict(db, s) for s in series_list]
         return [s for s in summaries if s["pieceCount"] > 1], 200
