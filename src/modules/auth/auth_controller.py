@@ -5,6 +5,7 @@ import secrets
 import bcrypt
 from datetime import datetime, timezone, timedelta
 from flask import request, g
+from redis.exceptions import RedisError
 from sqlalchemy.exc import IntegrityError
 
 from src.shared.config.database import SessionLocal
@@ -62,8 +63,12 @@ from src.modules.sessions.refresh_token_dao import (
 from src.modules.user.user_serializers import user_to_dict
 
 SALT_ROUNDS = int(os.getenv("SALT_ROUNDS", "10"))
-REFRESH_TOKEN_DAYS = 7
-COOKIE_MAX_AGE = 7 * 24 * 3600
+# Sessions/refresh tokens never expire on their own — only explicit logout
+# (or logout-all-devices) ends one. Cookies and the DB's `expires_at`
+# column need *some* concrete value, so a far-future date stands in for
+# "never" rather than a real expiry.
+REFRESH_TOKEN_DAYS = 365 * 100
+COOKIE_MAX_AGE = REFRESH_TOKEN_DAYS * 24 * 3600
 MIN_PASSWORD_LEN = 8
 
 
@@ -273,7 +278,14 @@ def refresh():
         if not bcrypt.checkpw(secret.encode(), row.hashed_token.encode()):
             raise AppError(UNAUTHORIZED, 401)
         from src.modules.sessions.session_service import find_session as _find_session
-        if not _find_session(row.session_id):
+        try:
+            session_found = _find_session(row.session_id) is not None
+        except RedisError:
+            # Redis being unreachable is an infrastructure hiccup, not a
+            # real logout — don't reject a refresh just because we
+            # couldn't ask Redis to confirm the session still exists.
+            session_found = True
+        if not session_found:
             raise AppError(UNAUTHORIZED, 401)
         from src.shared.models.user import User
         user = db.get(User, row.user_id)
@@ -356,7 +368,9 @@ def reset_password():
 def change_password():
     """Authenticated password change (distinct from the email-token forget/reset flow above).
     Invalidates other active sessions, same as logout-all, since a password change should
-    kill any sessions started before the credential was known to be compromised/changed."""
+    kill any sessions started before the credential was known to be compromised/changed —
+    but immediately reissues a fresh session/token pair for THIS device/request, so the
+    user isn't also logged out of the device where they just changed their password."""
     from src.modules.auth.auth_dao import update_user_password
     from src.shared.models.user import User
 
@@ -380,7 +394,13 @@ def change_password():
         db.close()
 
     delete_all_sessions_for_user(str(user_id))
-    return {"message": "Password changed successfully."}, 200, None
+
+    db = SessionLocal()
+    try:
+        user = db.get(User, user_id)
+        return _issue_session_and_tokens(user, request)
+    finally:
+        db.close()
 
 
 def _email_change_otp_key(new_email: str) -> str:

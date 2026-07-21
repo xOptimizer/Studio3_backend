@@ -1,12 +1,10 @@
-"""Redis session: create, find, delete. Key session:<session_id>, TTL 7 days."""
+"""Redis session: create, find, delete. Key session:<session_id>, no expiry —
+a session lives until explicit logout/revocation, never on its own."""
 import json
 import uuid
 from datetime import datetime, timezone
 
 from src.shared.config.redis_client import get_redis_client
-
-SESSION_TTL_DAYS = 7
-SESSION_TTL_SECONDS = 60 * 60 * 24 * SESSION_TTL_DAYS
 
 
 def create_session(user_id: str, user_agent: str = "", ip: str = "") -> str:
@@ -20,7 +18,7 @@ def create_session(user_id: str, user_agent: str = "", ip: str = "") -> str:
         "createdAt": datetime.now(timezone.utc).isoformat(),
     })
     r = get_redis_client()
-    r.setex(key, SESSION_TTL_SECONDS, value)
+    r.set(key, value)
     return session_id
 
 

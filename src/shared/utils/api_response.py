@@ -29,3 +29,17 @@ def error_response(
 def internal_error_response():
     """Generic 500 response."""
     return error_response(INTERNAL_SERVER_ERROR, 500)
+
+
+def apply_cookie_ops(resp, cookie_ops):
+    """Apply a controller's requested cookie mutation (set/clear the
+    refreshToken cookie) to a Flask response — shared by any route wrapper
+    that forwards a (data, status, cookie_ops) tuple from a controller."""
+    if not cookie_ops:
+        return
+    if cookie_ops.get("set_refresh_cookie"):
+        opts = cookie_ops["set_refresh_cookie"].copy()
+        value = opts.pop("value")
+        resp.set_cookie("refreshToken", value, **opts)
+    if cookie_ops.get("clear_refresh_cookie"):
+        resp.delete_cookie("refreshToken", path="/")

@@ -2,6 +2,7 @@
 from functools import wraps
 
 from flask import g, request
+from redis.exceptions import RedisError
 
 from src.shared.config.database import SessionLocal
 from src.shared.config.redis_client import get_redis_client
@@ -34,8 +35,14 @@ def _load_user_from_token(required: bool):
         if required:
             raise AppError(UNAUTHORIZED, 401)
         return None
-    redis_client = get_redis_client()
-    if not redis_client.exists(f"session:{session_id}"):
+    try:
+        session_exists = get_redis_client().exists(f"session:{session_id}")
+    except RedisError:
+        # Redis being unreachable is an infrastructure hiccup, not a real
+        # logout — fall back to trusting the cryptographically verified,
+        # unexpired JWT alone rather than rejecting every request.
+        session_exists = True
+    if not session_exists:
         if required:
             raise AppError(UNAUTHORIZED, 401)
         return None

@@ -5,7 +5,7 @@ from flask import Blueprint, Response, abort, g, request
 
 from src.middlewares.auth_middleware import auth_required, optional_auth
 from src.shared.storage.local_storage import guess_content_type, read_local_file, save_local_file
-from src.shared.utils.api_response import success_response
+from src.shared.utils.api_response import success_response, apply_cookie_ops
 from src.shared.utils.async_handler import async_handler
 from src.modules.user import user_controller
 from src.modules.media import media_controller
@@ -53,8 +53,10 @@ def patch_username():
 @auth_required
 @async_handler
 def patch_password():
-    data, status, _ = auth_controller.change_password()
-    return _ok("Password changed.", data, status)
+    data, status, cookie_ops = auth_controller.change_password()
+    resp, _ = success_response("Password changed.", data, status)
+    apply_cookie_ops(resp, cookie_ops)
+    return resp, status
 
 
 @user_bp.post("/me/email/request-change")
