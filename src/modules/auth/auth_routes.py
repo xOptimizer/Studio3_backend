@@ -53,6 +53,12 @@ def otp_resend():
     return _respond(OTP_SENT, data, status, cookie_ops)
 
 
+@auth_bp.post("/otp/verify")
+def otp_verify():
+    data, status, cookie_ops = auth_controller.otp_verify()
+    return _respond("OTP verified.", data, status, cookie_ops)
+
+
 @auth_bp.post("/register")
 def register():
     data, status, cookie_ops = auth_controller.register()

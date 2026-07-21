@@ -41,6 +41,7 @@ from src.modules.auth.services.otp_service import (
     check_resend_limit,
     store_otp,
     verify_otp,
+    peek_otp,
     generate_otp,
 )
 from src.modules.auth.services.password_reset_service import (
@@ -144,12 +145,27 @@ def otp_generate():
         raise AppError("Resend limit exceeded. Try again later.", 429)
     otp = generate_otp(6)
     store_otp(email, otp)
-    send_email(email, "Your verification code", get_otp_html(otp))
+    if not send_email(email, "Your verification code", get_otp_html(otp)):
+        raise AppError("Could not send the verification email. Please try again.", 502)
     return {"message": "OTP sent successfully."}, 200, None
 
 
 def otp_resend():
     return otp_generate()
+
+
+def otp_verify():
+    """Check-only step used by the sign-up wizard's OTP screen — does not
+    consume the code or create an account. The real, single-use check still
+    happens in register() via verify_otp()."""
+    body = request.get_json() or {}
+    email = (body.get("email") or "").strip().lower()
+    otp = (body.get("otp") or "").strip()
+    if not email:
+        raise AppError(EMAIL_REQUIRED, 400)
+    if not otp or not peek_otp(email, otp):
+        raise AppError(OTP_VERIFICATION_FAILED, 400)
+    return {"verified": True}, 200, None
 
 
 def register():

@@ -95,7 +95,11 @@ Authorization: Bearer {{accessToken}}
 
 ### Auth – OTP generate / resend
 
-**POST** `{{baseUrl}}/api/auth/otp/generate` and `{{baseUrl}}/api/auth/otp/resend` — body `{ "email" }`. `429` if rate/resend limit exceeded.
+**POST** `{{baseUrl}}/api/auth/otp/generate` and `{{baseUrl}}/api/auth/otp/resend` — body `{ "email" }`. `429` if rate/resend limit exceeded. `502` if the verification email could not be sent. `503` if the OTP store is temporarily unreachable.
+
+### Auth – OTP verify
+
+**POST** `{{baseUrl}}/api/auth/otp/verify` — body `{ "email", "otp" }`. Check-only: does not consume the code or create an account (registration still does the real, single-use check). `400` if the code is wrong/expired. Used by the sign-up wizard to validate the code before advancing past the OTP screen.
 
 ### Auth – Username check
 
