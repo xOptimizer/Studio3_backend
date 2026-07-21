@@ -1,10 +1,3 @@
-databases:
-  - name: studio3-db
-    databaseName: studio3
-    user: studio3
-    plan: free
-    region: oregon
-
 services:
   - type: web
     name: studio3-backend
@@ -17,9 +10,7 @@ services:
       - key: FLASK_ENV
         value: production
       - key: DATABASE_URL
-        fromDatabase:
-          name: studio3-db
-          property: connectionString
+        sync: false # paste your existing Aiven Postgres connection string here
       - key: REDIS_URL
         sync: false # paste the Internal Redis URL from your existing studio3-redis instance (Render dashboard → that instance → Connect)
       - key: SECRET_KEY
