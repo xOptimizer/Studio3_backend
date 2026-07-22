@@ -1,5 +1,5 @@
 """Public user content listings (pieces, posts)."""
-from flask import Blueprint
+from flask import Blueprint, request
 
 from src.middlewares.auth_middleware import optional_auth
 from src.shared.utils.api_response import success_response
@@ -7,6 +7,7 @@ from src.shared.utils.async_handler import async_handler
 from src.modules.pieces import pieces_controller
 from src.modules.posts import posts_controller
 from src.modules.series import series_controller
+from src.modules.social import social_controller
 from src.modules.user import user_controller
 
 users_bp = Blueprint("users", __name__)
@@ -54,4 +55,24 @@ def list_posts(username):
 @async_handler
 def list_series(username):
     data, status = series_controller.list_for_user(username)
+    return _ok("OK", data, status)
+
+
+@users_bp.get("/<username>/followers")
+@optional_auth
+@async_handler
+def list_followers(username):
+    cursor = request.args.get("cursor")
+    limit = min(int(request.args.get("limit", 20)), 50)
+    data, status = social_controller.list_followers(username, cursor=cursor, limit=limit)
+    return _ok("OK", data, status)
+
+
+@users_bp.get("/<username>/following")
+@optional_auth
+@async_handler
+def list_following(username):
+    cursor = request.args.get("cursor")
+    limit = min(int(request.args.get("limit", 20)), 50)
+    data, status = social_controller.list_following(username, cursor=cursor, limit=limit)
     return _ok("OK", data, status)

@@ -78,6 +78,40 @@ def count_following(db: Session, user_id: uuid.UUID) -> int:
     ).scalar_one()
 
 
+def list_followers(
+    db: Session, user_id: uuid.UUID, limit: int = 20, before: Optional[datetime] = None
+) -> list[tuple[Follow, User]]:
+    """Accepted followers of `user_id` (Instagram-style followers list), newest first."""
+    q = (
+        select(Follow, User)
+        .join(User, User.id == Follow.follower_id)
+        .where(Follow.following_id == user_id, Follow.status == "accepted")
+    )
+    if before:
+        q = q.where(Follow.created_at < before)
+    rows = db.execute(q.order_by(Follow.created_at.desc()).limit(limit)).all()
+    return [(row[0], row[1]) for row in rows]
+
+
+def list_following(
+    db: Session, user_id: uuid.UUID, limit: int = 20, before: Optional[datetime] = None
+) -> list[tuple[Follow, User]]:
+    """Accounts `user_id` accepted-follows (Instagram-style following list), newest first."""
+    q = (
+        select(Follow, User)
+        .join(User, User.id == Follow.following_id)
+        .where(Follow.follower_id == user_id, Follow.status == "accepted")
+    )
+    if before:
+        q = q.where(Follow.created_at < before)
+    rows = db.execute(q.order_by(Follow.created_at.desc()).limit(limit)).all()
+    return [(row[0], row[1]) for row in rows]
+
+
+def follow_user_to_dict(user: User) -> dict:
+    return {"username": user.username, "name": user.name, "profilePhotoUrl": user.image}
+
+
 def count_user_saves(db: Session, user_id: uuid.UUID) -> int:
     """Number of pieces/posts this user has saved."""
     return db.execute(select(func.count(Save.id)).where(Save.user_id == user_id)).scalar_one()

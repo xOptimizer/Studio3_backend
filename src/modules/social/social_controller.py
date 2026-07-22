@@ -103,6 +103,46 @@ def list_follow_requests():
         db.close()
 
 
+def list_followers(username: str, cursor: str = None, limit: int = 20):
+    db = SessionLocal()
+    try:
+        target = find_user_by_username(db, username.lower())
+        if not target:
+            raise AppError("User not found.", 404)
+        viewer_id = uuid.UUID(g.user["id"]) if getattr(g, "user", None) else None
+        if not social_dao.can_view_content(db, target, viewer_id):
+            raise AppError("This account is private.", 403)
+        before = datetime.fromisoformat(cursor) if cursor else None
+        rows = social_dao.list_followers(db, target.id, limit=limit + 1, before=before)
+        has_more = len(rows) > limit
+        rows = rows[:limit]
+        items = [social_dao.follow_user_to_dict(user) for _follow, user in rows]
+        next_cursor = rows[-1][0].created_at.isoformat() if has_more and rows else None
+        return {"items": items, "nextCursor": next_cursor}, 200
+    finally:
+        db.close()
+
+
+def list_following(username: str, cursor: str = None, limit: int = 20):
+    db = SessionLocal()
+    try:
+        target = find_user_by_username(db, username.lower())
+        if not target:
+            raise AppError("User not found.", 404)
+        viewer_id = uuid.UUID(g.user["id"]) if getattr(g, "user", None) else None
+        if not social_dao.can_view_content(db, target, viewer_id):
+            raise AppError("This account is private.", 403)
+        before = datetime.fromisoformat(cursor) if cursor else None
+        rows = social_dao.list_following(db, target.id, limit=limit + 1, before=before)
+        has_more = len(rows) > limit
+        rows = rows[:limit]
+        items = [social_dao.follow_user_to_dict(user) for _follow, user in rows]
+        next_cursor = rows[-1][0].created_at.isoformat() if has_more and rows else None
+        return {"items": items, "nextCursor": next_cursor}, 200
+    finally:
+        db.close()
+
+
 def accept_follow_request(username: str):
     db = SessionLocal()
     try:
