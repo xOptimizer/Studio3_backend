@@ -10,6 +10,7 @@ PURPOSE_DIRS = {
     "cover": "cover",
     "piece": "pieces",
     "post": "posts",
+    "chat": "chat",
 }
 
 

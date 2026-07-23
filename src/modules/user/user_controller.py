@@ -408,7 +408,7 @@ def unregister_device():
 
 
 DEFAULT_NOTIFICATION_PREFERENCES = {
-    "push": {"follow": True, "like": True, "save": True, "comment": True, "inquiry": True, "purchase": True},
+    "push": {"follow": True, "like": True, "save": True, "comment": True, "inquiry": True, "message": True, "purchase": True},
     "dailyDigest": {"enabled": False, "time": "09:00"},
 }
 

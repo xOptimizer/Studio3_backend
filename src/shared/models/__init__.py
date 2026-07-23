@@ -15,6 +15,7 @@ from src.shared.models.inquiry import Inquiry, InquiryMessage
 from src.shared.models.address import Address
 from src.shared.models.order import Order, OrderItem
 from src.shared.models.block import Block
+from src.shared.models.chat import Conversation, ChatMessage
 
 __all__ = [
     "User",
@@ -41,4 +42,6 @@ __all__ = [
     "Order",
     "OrderItem",
     "Block",
+    "Conversation",
+    "ChatMessage",
 ]

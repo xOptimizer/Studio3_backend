@@ -5,7 +5,10 @@ services:
     plan: free
     region: oregon
     buildCommand: "pip install -r requirements.txt"
-    startCommand: "alembic upgrade head && gunicorn wsgi:app --bind 0.0.0.0:$PORT"
+    # -k eventlet -w 1: Socket.IO (chat real-time) requires an async-capable worker; eventlet
+    # handles many concurrent long-lived connections on a single worker via greenlets, so this
+    # replaces the previous default sync worker rather than adding a second process type.
+    startCommand: "alembic upgrade head && gunicorn -k eventlet -w 1 wsgi:app --bind 0.0.0.0:$PORT"
     envVars:
       - key: FLASK_ENV
         value: production

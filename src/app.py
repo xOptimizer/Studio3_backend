@@ -4,6 +4,7 @@ from flask import Flask
 from flask_cors import CORS
 
 from src.middlewares.error_handler import register_error_handler
+from src.shared.realtime.socketio_instance import socketio
 
 def create_app():
     app = Flask(__name__)
@@ -24,8 +25,11 @@ def create_app():
     from src.modules.feeds.feeds_routes import feeds_bp
     from src.modules.series.series_routes import series_bp
     from src.modules.notifications.notifications_routes import notifications_bp
-    from src.modules.inquiries.inquiries_routes import inquiries_bp
+    # Inquiries deferred to v2 in favor of general-purpose chat (see src/modules/chat). Left
+    # unregistered rather than deleted so the feature can be re-enabled later.
+    # from src.modules.inquiries.inquiries_routes import inquiries_bp
     from src.modules.orders.orders_routes import orders_bp
+    from src.modules.chat.chat_routes import chat_bp
 
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
     app.register_blueprint(user_bp, url_prefix="/api/user")
@@ -37,8 +41,14 @@ def create_app():
     app.register_blueprint(feeds_bp, url_prefix="/api/feed")
     app.register_blueprint(series_bp, url_prefix="/api/series")
     app.register_blueprint(notifications_bp, url_prefix="/api/notifications")
-    app.register_blueprint(inquiries_bp, url_prefix="/api/inquiries")
+    # app.register_blueprint(inquiries_bp, url_prefix="/api/inquiries")
     app.register_blueprint(orders_bp, url_prefix="/api/orders")
+    app.register_blueprint(chat_bp, url_prefix="/api/conversations")
+
+    # Real-time chat: binds the shared SocketIO instance to this app and registers its
+    # @socketio.on(...) handlers (import has the side effect of registering them).
+    socketio.init_app(app)
+    from src.modules.chat import chat_socket  # noqa: F401
 
     # Health at root
     @app.get("/")

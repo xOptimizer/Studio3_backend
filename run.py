@@ -1,4 +1,9 @@
 """Entry: load env (by FLASK_ENV), connect DB + Redis, then run Flask app. Exit on connection failure."""
+# Must run before any other import (sockets/threading) — gunicorn's `-k eventlet` worker does
+# this automatically in production, but this dev entrypoint doesn't go through gunicorn.
+import eventlet
+eventlet.monkey_patch()
+
 import os
 import sys
 from pathlib import Path
@@ -22,23 +27,41 @@ from src.shared.utils.logger import get_logger
 
 logger = get_logger("run")
 
+def _print_err(message: str) -> None:
+    # Printed directly to stderr (unconditional, unbuffered) rather than only through
+    # `logger` — the logger's console handler is only attached when FLASK_ENV resolves to
+    # "development" (src/shared/utils/logger.py), so a stale FLASK_ENV in the parent shell
+    # can silently suppress every logger.error() call with no visible sign anything is wrong.
+    print(message, file=sys.stderr, flush=True)
+
+
 def main():
     db_ok, db_err = check_db_connection()
     if not db_ok:
+        _print_err("Database connection failed. Check DATABASE_URL.")
+        if db_err:
+            _print_err(f"DB error: {db_err}")
         logger.error("Database connection failed. Check DATABASE_URL.")
         if db_err:
             logger.error("DB error: %s", db_err)
         sys.exit(1)
     if not check_redis_connection():
+        _print_err("Redis connection failed. Check REDIS_URL.")
         logger.error("Redis connection failed. Check REDIS_URL.")
         sys.exit(1)
 
     from src.app import create_app
+    from src.shared.realtime.socketio_instance import socketio
     app = create_app()
 
     port = int(os.getenv("PORT", 9000))
     try:
-        app.run(host="0.0.0.0", port=port, threaded=True)
+        # socketio.run (not app.run) so the /socket.io websocket endpoint works in dev too.
+        # Unlike Flask's own dev server, this doesn't print a "Running on http://..." banner,
+        # so print it explicitly — otherwise a successful start looks identical to a silent hang.
+        _print_err(f"Server listening on http://0.0.0.0:{port} (Socket.IO enabled)")
+        logger.info("Server listening on http://0.0.0.0:%d (Socket.IO enabled)", port)
+        socketio.run(app, host="0.0.0.0", port=port)
     finally:
         close_redis()
 

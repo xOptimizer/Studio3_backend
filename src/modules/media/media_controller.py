@@ -15,7 +15,7 @@ def presign():
     content_type = (body.get("contentType") or body.get("content_type") or "").strip()
     content_id = body.get("pieceId") or body.get("postId") or body.get("content_id")
 
-    if purpose not in ("profile", "cover", "piece", "post"):
+    if purpose not in ("profile", "cover", "piece", "post", "chat"):
         raise AppError("Invalid purpose.", 400)
     if not content_type:
         raise AppError("contentType is required.", 400)
