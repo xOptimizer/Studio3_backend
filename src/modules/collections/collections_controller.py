@@ -75,6 +75,32 @@ def create():
         db.close()
 
 
+def rename(collection_id: str):
+    body = request.get_json() or {}
+    name = (body.get("name") or "").strip()
+    if not name:
+        raise AppError("Collection name is required.", 400)
+    db = SessionLocal()
+    try:
+        user_id = uuid.UUID(g.user["id"])
+        collection = _require_owned_collection(db, uuid.UUID(collection_id), user_id)
+        collections_dao.rename_collection(db, collection, name[:120])
+        return _collection_summary_dict(db, collection), 200
+    finally:
+        db.close()
+
+
+def delete(collection_id: str):
+    db = SessionLocal()
+    try:
+        user_id = uuid.UUID(g.user["id"])
+        collection = _require_owned_collection(db, uuid.UUID(collection_id), user_id)
+        collections_dao.delete_collection(db, collection)
+        return {"deleted": True}, 200
+    finally:
+        db.close()
+
+
 def get_detail(collection_id: str):
     from src.modules.pieces.pieces_controller import enrich_piece_dict
     from src.modules.posts.posts_controller import enrich_post_dict

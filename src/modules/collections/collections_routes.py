@@ -38,6 +38,22 @@ def get_collection(collection_id):
     return _ok("OK", data, status)
 
 
+@collections_bp.patch("/<collection_id>")
+@onboarding_required
+@async_handler
+def rename_collection(collection_id):
+    data, status = collections_controller.rename(collection_id)
+    return _ok("Collection updated.", data, status)
+
+
+@collections_bp.delete("/<collection_id>")
+@onboarding_required
+@async_handler
+def delete_collection(collection_id):
+    data, status = collections_controller.delete(collection_id)
+    return _ok("Collection deleted.", data, status)
+
+
 @collections_bp.post("/<collection_id>/items")
 @onboarding_required
 @async_handler

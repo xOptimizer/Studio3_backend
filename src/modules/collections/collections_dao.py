@@ -31,6 +31,20 @@ def list_user_collections(db: Session, user_id: uuid.UUID) -> list[Collection]:
     )
 
 
+def rename_collection(db: Session, collection: Collection, name: str) -> Collection:
+    collection.name = name
+    db.commit()
+    db.refresh(collection)
+    return collection
+
+
+def delete_collection(db: Session, collection: Collection) -> None:
+    """Removes the folder only — its `CollectionItem` rows cascade-delete
+    at the DB level, but the underlying pieces/posts stay saved/untouched."""
+    db.delete(collection)
+    db.commit()
+
+
 def count_items(db: Session, collection_id: uuid.UUID) -> int:
     return db.execute(
         select(func.count(CollectionItem.id)).where(CollectionItem.collection_id == collection_id)
