@@ -30,6 +30,7 @@ def create_app():
     # from src.modules.inquiries.inquiries_routes import inquiries_bp
     from src.modules.orders.orders_routes import orders_bp
     from src.modules.chat.chat_routes import chat_bp
+    from src.modules.collections.collections_routes import collections_bp
 
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
     app.register_blueprint(user_bp, url_prefix="/api/user")
@@ -44,6 +45,7 @@ def create_app():
     # app.register_blueprint(inquiries_bp, url_prefix="/api/inquiries")
     app.register_blueprint(orders_bp, url_prefix="/api/orders")
     app.register_blueprint(chat_bp, url_prefix="/api/conversations")
+    app.register_blueprint(collections_bp, url_prefix="/api/collections")
 
     # Real-time chat: binds the shared SocketIO instance to this app and registers its
     # @socketio.on(...) handlers (import has the side effect of registering them).
