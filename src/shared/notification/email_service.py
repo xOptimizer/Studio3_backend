@@ -1,35 +1,39 @@
-"""Send email via SMTP (from env)."""
+"""Send email via AWS SES (from env)."""
 import os
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 
 from src.shared.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
-SMTP_HOST = os.getenv("SMTP_HOST", "")
-SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
-SMTP_USER = os.getenv("SMTP_USER", "")
-SMTP_PASS = os.getenv("SMTP_PASS", "")
+SES_FROM_EMAIL = os.getenv("SES_FROM_EMAIL", "")
+
+
+def _get_ses_client():
+    import boto3
+
+    return boto3.client(
+        "ses",
+        region_name=os.getenv("AWS_REGION", "us-east-1"),
+        aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+        aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+    )
 
 
 def send_email(to: str, subject: str, html: str) -> bool:
-    """Send email with given HTML body. Returns True on success."""
-    if not SMTP_HOST or not SMTP_USER:
-        logger.warning("SMTP not configured; skipping email to %s", to)
+    """Send email with given HTML body via SES. Returns True on success."""
+    if not SES_FROM_EMAIL:
+        logger.warning("SES_FROM_EMAIL not configured; skipping email to %s", to)
         return False
     try:
-        msg = MIMEMultipart("alternative")
-        msg["Subject"] = subject
-        msg["From"] = SMTP_USER
-        msg["To"] = to
-        msg.attach(MIMEText(html, "html"))
-        with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=10) as server:
-            server.starttls()
-            if SMTP_PASS:
-                server.login(SMTP_USER, SMTP_PASS)
-            server.sendmail(SMTP_USER, to, msg.as_string())
+        client = _get_ses_client()
+        client.send_email(
+            Source=SES_FROM_EMAIL,
+            Destination={"ToAddresses": [to]},
+            Message={
+                "Subject": {"Data": subject},
+                "Body": {"Html": {"Data": html}},
+            },
+        )
         return True
     except Exception as e:
         logger.exception("Failed to send email to %s: %s", to, e)

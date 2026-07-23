@@ -23,14 +23,6 @@ services:
         value: "10"
       - key: FRONTEND_URL
         sync: false
-      - key: SMTP_HOST
-        sync: false
-      - key: SMTP_PORT
-        value: "587"
-      - key: SMTP_USER
-        sync: false
-      - key: SMTP_PASS
-        sync: false
       - key: AWS_ACCESS_KEY_ID
         sync: false
       - key: AWS_SECRET_ACCESS_KEY
@@ -40,6 +32,8 @@ services:
       - key: S3_BUCKET
         sync: false
       - key: S3_PUBLIC_BASE_URL
+        sync: false
+      - key: SES_FROM_EMAIL
         sync: false
       - key: FIREBASE_SERVICE_ACCOUNT_JSON
         sync: false
