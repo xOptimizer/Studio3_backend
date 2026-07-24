@@ -38,6 +38,15 @@ def search_users():
     return _ok("OK", data, status)
 
 
+@chat_bp.get("/with/<username>")
+@auth_required
+@async_handler
+def find_with_user(username):
+    """Return the open/pending thread with this user, if any (for compose → reuse)."""
+    data, status = chat_controller.find_with_user(username)
+    return _ok("OK", data, status)
+
+
 @chat_bp.get("/<conversation_id>")
 @auth_required
 @async_handler

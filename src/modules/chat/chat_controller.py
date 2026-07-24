@@ -64,6 +64,36 @@ def search_users():
         db.close()
 
 
+def find_with_user(username: str):
+    """Look up an existing open/pending conversation with `username` (compose reuse)."""
+    other_username = (username or "").strip()
+    if not other_username:
+        raise AppError("username is required.", 400)
+    db = SessionLocal()
+    try:
+        me_id = uuid.UUID(g.user["id"])
+        other = find_user_by_username(db, other_username)
+        if not other or other.id == me_id:
+            return {"conversation": None}, 200
+        if block_dao.is_blocked_either_way(db, me_id, other.id):
+            return {"conversation": None}, 200
+        existing = chat_dao.get_conversation_between(db, me_id, other.id)
+        if not existing or existing.status == "closed":
+            return {"conversation": None}, 200
+        last_msg = chat_dao.list_messages(db, existing.id, limit=1)
+        preview = (
+            last_msg[0].body[:140] if last_msg and last_msg[0].body
+            else ("Photo" if last_msg and last_msg[0].image_url else None)
+        )
+        return {
+            "conversation": chat_dao.conversation_to_inbox_dict(
+                existing, me_id, other, preview
+            )
+        }, 200
+    finally:
+        db.close()
+
+
 def list_inbox():
     cursor = request.args.get("cursor")
     limit = min(int(request.args.get("limit", 20)), 50)
@@ -145,18 +175,22 @@ def get_thread(conversation_id: str):
         chat_dao.mark_read(db, conversation, me_id)
         other_id = chat_dao.other_participant_id(conversation, me_id)
         other_user = get_user_by_id(db, other_id)
+        other_party = None
+        if other_user:
+            from src.modules.pieces.pieces_dao import list_user_pieces
+
+            other_party = {
+                "id": str(other_user.id),
+                "username": other_user.username,
+                "name": other_user.name,
+                "profilePhotoUrl": other_user.image,
+                "followersCount": social_dao.count_followers(db, other_user.id),
+                "piecesCount": len(list_user_pieces(db, other_user.id)),
+                "isFollowing": social_dao.user_follows(db, me_id, other_user.id),
+            }
         return {
             "id": str(conversation.id),
-            "otherParty": (
-                {
-                    "id": str(other_user.id),
-                    "username": other_user.username,
-                    "name": other_user.name,
-                    "profilePhotoUrl": other_user.image,
-                }
-                if other_user
-                else None
-            ),
+            "otherParty": other_party,
             "status": conversation.status,
             "messages": {"items": items, "nextCursor": next_cursor},
         }, 200
