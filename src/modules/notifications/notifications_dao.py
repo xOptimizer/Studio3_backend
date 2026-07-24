@@ -59,10 +59,37 @@ def create_and_push(
     return notification
 
 
+def push_only(
+    db: Session,
+    user_id: uuid.UUID,
+    type: str,
+    title: str,
+    body: str,
+    push_data: Optional[dict] = None,
+) -> None:
+    """Send a phone push without writing an in-app Notification row.
+
+    Used for DMs (Instagram-style): system push + Chats tab badge only — not the
+    Notifications activity feed.
+    """
+    recipient = db.get(User, user_id)
+    push_prefs = (recipient.notification_preferences or {}).get("push", {}) if recipient else {}
+    if push_prefs.get(type, True):
+        send_push(user_id, title, body, data=push_data)
+
+
+# Activity types that belong in the Notifications tab. Chat DMs (`message`) are
+# excluded — they surface as phone push + Chats unread badge only (Instagram-style).
+_ACTIVITY_FEED_EXCLUDED_TYPES = ("message",)
+
+
 def list_notifications(
     db: Session, user_id: uuid.UUID, limit: int = 20, before: Optional[datetime] = None
 ) -> list[Notification]:
-    q = select(Notification).where(Notification.user_id == user_id)
+    q = select(Notification).where(
+        Notification.user_id == user_id,
+        Notification.type.notin_(_ACTIVITY_FEED_EXCLUDED_TYPES),
+    )
     if before:
         q = q.where(Notification.created_at < before)
     return list(db.execute(q.order_by(Notification.created_at.desc()).limit(limit)).scalars().all())
@@ -82,7 +109,11 @@ def mark_read(db: Session, user_id: uuid.UUID, notification_id: uuid.UUID) -> bo
 def mark_all_read(db: Session, user_id: uuid.UUID) -> int:
     result = db.execute(
         update(Notification)
-        .where(Notification.user_id == user_id, Notification.read.is_(False))
+        .where(
+            Notification.user_id == user_id,
+            Notification.read.is_(False),
+            Notification.type.notin_(_ACTIVITY_FEED_EXCLUDED_TYPES),
+        )
         .values(read=True)
     )
     db.commit()
@@ -92,7 +123,9 @@ def mark_all_read(db: Session, user_id: uuid.UUID) -> int:
 def count_unread(db: Session, user_id: uuid.UUID) -> int:
     return db.execute(
         select(func.count(Notification.id)).where(
-            Notification.user_id == user_id, Notification.read.is_(False)
+            Notification.user_id == user_id,
+            Notification.read.is_(False),
+            Notification.type.notin_(_ACTIVITY_FEED_EXCLUDED_TYPES),
         )
     ).scalar_one()
 

@@ -199,16 +199,17 @@ def get_thread(conversation_id: str):
 
 
 def _notify_new_message(db, conversation_id, recipient_id, sender, text, is_new_thread):
-    notifications_dao.create_and_push(
+    # Instagram-style: phone push + Chats unread badge only — no in-app Notifications row.
+    notifications_dao.push_only(
         db,
         user_id=recipient_id,
         type="message",
-        actor_id=sender.id,
-        target_type="conversation",
-        target_id=conversation_id,
-        payload={"message": (text or "")[:140]},
         title="New message request" if is_new_thread else "New message",
         body=f"{sender.name}: {(text or 'Sent a photo')[:100]}",
+        push_data={
+            "type": "message",
+            "conversationId": str(conversation_id),
+        },
     )
 
 
@@ -281,17 +282,7 @@ def send_message(conversation_id: str):
         message = chat_dao.create_message(db, conversation, me_id, text[:2000] if text else None, image_url)
         other_id = chat_dao.other_participant_id(conversation, me_id)
         sender = get_user_by_id(db, me_id)
-        notifications_dao.create_and_push(
-            db,
-            user_id=other_id,
-            type="message",
-            actor_id=me_id,
-            target_type="conversation",
-            target_id=conversation.id,
-            payload={"message": (text or "")[:140]},
-            title="New message",
-            body=f"{sender.name}: {(text or 'Sent a photo')[:100]}",
-        )
+        _notify_new_message(db, conversation.id, other_id, sender, text, is_new_thread=False)
         message_dict = chat_dao.message_to_dict(message, sender)
         _broadcast_new_message(conversation.id, other_id, message_dict)
         return message_dict, 201

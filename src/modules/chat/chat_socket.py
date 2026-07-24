@@ -147,16 +147,16 @@ def on_message_send(data):
         other_id = chat_dao.other_participant_id(conversation, uuid.UUID(user_id))
 
         from src.modules.notifications import notifications_dao
-        notifications_dao.create_and_push(
+        notifications_dao.push_only(
             db,
             user_id=other_id,
             type="message",
-            actor_id=uuid.UUID(user_id),
-            target_type="conversation",
-            target_id=conversation.id,
-            payload={"message": (body or "")[:140]},
             title="New message",
             body=f"{sender.name}: {(body or 'Sent a photo')[:100]}",
+            push_data={
+                "type": "message",
+                "conversationId": str(conversation.id),
+            },
         )
     finally:
         db.close()
